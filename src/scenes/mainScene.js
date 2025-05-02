@@ -31,7 +31,8 @@ export function initMainScene() {
     // Animation loop
     function animate() {
         requestAnimationFrame(animate);
-        cube.rotation.y += 0.01;
+        cube.rotation.y += 0.005;
+        cube.rotation.x += 0.005;
         renderer.render(scene, camera);
     }
 
