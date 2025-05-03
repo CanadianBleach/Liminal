@@ -1,5 +1,3 @@
-import { initMainScene } from './scenes/mainScene.js';
-
 // Get start screen element and add click event listener
 let startButton = document.getElementById("start-button");
 if (!startButton) {
@@ -9,29 +7,15 @@ if (!startButton) {
 }
 
 let fader = document.getElementById("fader");
-let gameFader = document.getElementById("game-fader");
+let webLoadFader = document.getElementById("web-load-fader");
 
 window.addEventListener('load', function () {
-    gameFader.classList = 'visible';
-    initMainScene();
+    webLoadFader.classList = "visible";
 });
 
 function startGame() {
-    console.log("starting game...");
-    startFadeOut();
+    fader.classList = 'hidden';
     setTimeout(() => {
         window.location.href = '/play';
     }, 1000);
-}
-
-function startFadeIn() {
-    console.log("fade in...");
-    if (!window.AnimationEvent) { return; }
-    gameFader.classList = 'visible';
-}
-
-function startFadeOut() {
-    console.log("fade out...");
-    if (!window.AnimationEvent) { return; }
-    fader.classList = 'hidden';
 }

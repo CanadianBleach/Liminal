@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 
-export const loadHDRI = (scene, imagePath) => {
+export const loadHDRI = (renderer, camera, scene, imagePath) => {
     const loader = new RGBELoader();
     loader.load(imagePath, function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
