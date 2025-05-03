@@ -12,14 +12,15 @@ let fader = document.getElementById("fader");
 let gameFader = document.getElementById("game-fader");
 
 window.addEventListener('load', function () {
-    fader.classList = 'visible';
+    gameFader.classList = 'visible';
+    initMainScene();
 });
 
 function startGame() {
     console.log("starting game...");
     startFadeOut();
     setTimeout(() => {
-        initMainScene();
+        window.location.href = '/play';
     }, 1000);
 }
 
