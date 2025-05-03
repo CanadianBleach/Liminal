@@ -6,10 +6,18 @@ export function initMovementScene() {
     const MOVE_SPEED = 200.0;
     const JUMP_SPEED = 6;
     const GRAVITY = 20;
-    const MAX_JUMP_DURATION = 0.25; // seconds
+    const MAX_JUMP_DURATION = 0.25;
+    const STAND_HEIGHT = 1.6;
+    const CROUCH_HEIGHT = 1.0;
+    const CROUCH_SPEED_MULTIPLIER = 0.4;
+    const SPRINT_SPEED_MULTIPLIER = 1.8;
+    const MAX_SPRINT_DURATION = 5.0;
+    const SPRINT_RECHARGE_RATE = .5;
+    const BASE_FOV = 80;
+    const SPRINT_FOV = 105;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(BASE_FOV, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
@@ -44,7 +52,7 @@ export function initMovementScene() {
 
     // Controls
     const controls = new PointerLockControls(camera, renderer.domElement);
-    camera.position.y = 1.6;
+    camera.position.y = STAND_HEIGHT;
     scene.add(controls.getObject());
 
     document.body.addEventListener('click', () => controls.lock());
@@ -56,13 +64,16 @@ export function initMovementScene() {
         backward: false,
         left: false,
         right: false,
-        jump: false
+        jump: false,
+        sprint: false
     };
 
     let canJump = true;
     let isJumping = false;
+    let isCrouching = false;
     let jumpStartTime = 0;
-    let yPosition = camera.position.y;
+    let sprintTime = MAX_SPRINT_DURATION;
+    let sprintReleasedSinceDepletion = true;
 
     document.addEventListener('keydown', (e) => {
         switch (e.code) {
@@ -70,6 +81,12 @@ export function initMovementScene() {
             case 'KeyS': keys.backward = true; break;
             case 'KeyA': keys.left = true; break;
             case 'KeyD': keys.right = true; break;
+            case 'ControlLeft': isCrouching = true; break;
+            case 'ShiftLeft':
+                if (sprintTime > 0 && sprintReleasedSinceDepletion) {
+                    keys.sprint = true;
+                }
+                break;
             case 'Space':
                 if (canJump && !keys.jump) {
                     keys.jump = true;
@@ -82,11 +99,18 @@ export function initMovementScene() {
     });
 
     document.addEventListener('keyup', (e) => {
-        if (e.code === 'Space') keys.jump = false;
-        if (e.code === 'KeyW') keys.forward = false;
-        if (e.code === 'KeyS') keys.backward = false;
-        if (e.code === 'KeyA') keys.left = false;
-        if (e.code === 'KeyD') keys.right = false;
+        switch (e.code) {
+            case 'KeyW': keys.forward = false; break;
+            case 'KeyS': keys.backward = false; break;
+            case 'KeyA': keys.left = false; break;
+            case 'KeyD': keys.right = false; break;
+            case 'ControlLeft': isCrouching = false; break;
+            case 'ShiftLeft':
+                keys.sprint = false;
+                sprintReleasedSinceDepletion = true;
+                break;
+            case 'Space': keys.jump = false; break;
+        }
     });
 
     const clock = new THREE.Clock();
@@ -102,23 +126,41 @@ export function initMovementScene() {
         direction.x = Number(keys.right) - Number(keys.left);
         direction.normalize();
 
+        let currentMoveSpeed = MOVE_SPEED;
+
+        if (isCrouching) {
+            currentMoveSpeed *= CROUCH_SPEED_MULTIPLIER;
+            sprintTime = Math.min(MAX_SPRINT_DURATION, sprintTime + SPRINT_RECHARGE_RATE * delta);
+        } else if (keys.sprint && sprintTime > 0 && sprintReleasedSinceDepletion) {
+            currentMoveSpeed *= SPRINT_SPEED_MULTIPLIER;
+            sprintTime -= delta;
+            if (sprintTime <= 0) {
+                sprintTime = 0;
+                keys.sprint = false;
+                sprintReleasedSinceDepletion = false;
+            }
+        } else {
+            sprintTime = Math.min(MAX_SPRINT_DURATION, sprintTime + SPRINT_RECHARGE_RATE * delta);
+        }
+
+        const isActuallySprinting = keys.sprint && sprintTime > 0 && !isCrouching;
+        const targetFov = isActuallySprinting ? SPRINT_FOV : BASE_FOV;
+        camera.fov += (targetFov - camera.fov) * 10 * delta;
+        camera.updateProjectionMatrix();
+
         if (controls.isLocked) {
-            direction.z = Number(keys.forward) - Number(keys.backward);
-            direction.x = Number(keys.right) - Number(keys.left);
-            direction.normalize();
+            velocity.z -= direction.z * currentMoveSpeed * delta;
 
-            // Apply forward/backward movement even in air
-            velocity.z -= direction.z * MOVE_SPEED * delta;
+            const groundHeight = isCrouching ? CROUCH_HEIGHT : STAND_HEIGHT;
 
-            // Only apply left/right movement when grounded
-            if (yPosition <= 1.6) {
-                velocity.x -= direction.x * MOVE_SPEED * delta;
+            if (camera.position.y <= groundHeight + 0.001) {
+                velocity.x -= direction.x * currentMoveSpeed * delta;
             }
 
             controls.moveRight(-velocity.x * delta);
             controls.moveForward(-velocity.z * delta);
 
-            // Jumping logic
+            // Jump logic
             const currentTime = performance.now() / 1000;
             if (isJumping && keys.jump) {
                 const heldTime = currentTime - jumpStartTime;
@@ -129,20 +171,25 @@ export function initMovementScene() {
                 }
             }
 
-            // Apply gravity
+            // Gravity
             velocity.y -= GRAVITY * delta;
-            yPosition += velocity.y * delta;
+            camera.position.y += velocity.y * delta;
 
-            if (yPosition <= 1.6) {
+            // Ground collision
+            if (camera.position.y <= groundHeight) {
+                camera.position.y = groundHeight;
                 velocity.y = 0;
-                yPosition = 1.6;
                 canJump = true;
                 isJumping = false;
             }
 
-            camera.position.y = yPosition;
+            // Smooth crouch/stand transition
+            const targetHeight = isCrouching ? CROUCH_HEIGHT : STAND_HEIGHT;
+            const heightDiff = targetHeight - camera.position.y;
+            if (Math.abs(heightDiff) > 0.001 && velocity.y === 0) {
+                camera.position.y += heightDiff * 10 * delta;
+            }
         }
-
 
         renderer.render(scene, camera);
     }
