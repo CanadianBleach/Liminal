@@ -1,16 +1,17 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export function initMovementScene() {
     // === Player Control Settings ===
-    const MOVE_SPEED = 200.0;
-    const JUMP_SPEED = 6;
+    const MOVE_SPEED = 125.0;
+    const JUMP_SPEED = 2.25;
     const GRAVITY = 20;
-    const MAX_JUMP_DURATION = 0.25;
+    const MAX_JUMP_DURATION = .25;
     const STAND_HEIGHT = 1.6;
     const CROUCH_HEIGHT = 1.0;
     const CROUCH_SPEED_MULTIPLIER = 0.4;
-    const SPRINT_SPEED_MULTIPLIER = 1.8;
+    const SPRINT_SPEED_MULTIPLIER = 1.2;
     const MAX_SPRINT_DURATION = 5.0;
     const SPRINT_RECHARGE_RATE = .5;
     const BASE_FOV = 80;
@@ -43,6 +44,23 @@ export function initMovementScene() {
     );
     ground.rotation.x = -Math.PI / 2;
     scene.add(ground);
+
+    // Add model
+    const loader = new GLTFLoader();
+
+    loader.load(
+        './models/original_backrooms.glb',
+        (gltf) => {
+            const model = gltf.scene;
+            model.position.set(0, 0, 0);
+            model.scale.set(1.5, 1.5, 1.5);
+            scene.add(model);
+        },
+        undefined,
+        (error) => {
+            console.error('Error loading model:', error);
+        }
+    );
 
     // Lighting
     const light = new THREE.DirectionalLight(0xffffff, 1);
