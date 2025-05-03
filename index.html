@@ -3,9 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <title>Three.js Project</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Liminal</h1>
-    <a href="play">Play</a>
+    <div id="fader">
+      <div id="start-screen">
+        <h1>LIMINAL</h1>
+        <button id="start-button" type="button">Enter the Void</button>
+      </div>
+      <div id="game-container" style="display: none">
+        <div id="instructions" class="hidden">
+          <p>Move: WASD / Arrow Keys</p>
+          <p>Look: Mouse</p>
+          <p>Click to continue</p>
+        </div>
+      </div>
+    </div>
   </body>
+  <script type="module" src="./src/index.js"></script>
 </html>
