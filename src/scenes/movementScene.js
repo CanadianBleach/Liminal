@@ -3,7 +3,6 @@ import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockCont
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export function initMovementScene() {
-    // === Player Control Settings ===
     const MOVE_SPEED = 125.0;
     const JUMP_SPEED = 2.25;
     const GRAVITY = 20;
@@ -21,9 +20,11 @@ export function initMovementScene() {
     const camera = new THREE.PerspectiveCamera(BASE_FOV, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
-    // Checkerboard texture for ground
+    // Create checkerboard texture for ground
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 512;
     const ctx = canvas.getContext('2d');
@@ -43,35 +44,59 @@ export function initMovementScene() {
         new THREE.MeshStandardMaterial({ map: checkerTexture })
     );
     ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.01; // Avoid Z-fighting
+    ground.receiveShadow = true;
     scene.add(ground);
 
-    // Add model
     const loader = new GLTFLoader();
-
-    loader.load(
-        './models/original_backrooms.glb',
-        (gltf) => {
-            const model = gltf.scene;
-            model.position.set(0, 0, 0);
-            model.scale.set(1.5, 1.5, 1.5);
-            scene.add(model);
-        },
-        undefined,
-        (error) => {
-            console.error('Error loading model:', error);
-        }
-    );
+    loader.load('./models/backrooms_another_level.glb', (gltf) => {
+        const model = gltf.scene;
+        model.position.set(-5, 0, 0);
+        model.scale.set(1.5, 1.5, 1.5);
+        model.traverse(child => {
+            if (child.isMesh) {
+                // Ensure it's affected by lights
+                if (child.material && child.material.isMeshBasicMaterial) {
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: child.material.color,
+                        map: child.material.map,
+                    });
+                }
+                child.castShadow = true;
+                child.receiveShadow = true;
+                child.material.needsUpdate = true;
+            }
+        });
+        scene.add(model);
+    });
 
     // Lighting
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(10, 10, 10);
-    scene.add(light);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(10, 10, 10);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
     scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
-    // Controls
     const controls = new PointerLockControls(camera, renderer.domElement);
     camera.position.y = STAND_HEIGHT;
     scene.add(controls.getObject());
+
+    // Flashlight setup
+    const flashlight = new THREE.SpotLight(0xffffff, 15, 50, Math.PI / 12, 0.2, 1);
+    flashlight.castShadow = true;
+    flashlight.position.set(.5, .5, 0);
+    flashlight.visible = true;
+
+    const flashlightTarget = new THREE.Object3D();
+    flashlightTarget.position.set(0, -2, -10);
+
+    camera.add(flashlight);
+    camera.add(flashlightTarget);
+    flashlight.target = flashlightTarget;
+    scene.add(camera);
+
+    let flashlightOn = true;
 
     document.body.addEventListener('click', () => controls.lock());
 
@@ -112,6 +137,10 @@ export function initMovementScene() {
                     isJumping = true;
                     canJump = false;
                 }
+                break;
+            case 'KeyF':
+                flashlightOn = !flashlightOn;
+                flashlight.visible = flashlightOn;
                 break;
         }
     });
@@ -178,7 +207,6 @@ export function initMovementScene() {
             controls.moveRight(-velocity.x * delta);
             controls.moveForward(-velocity.z * delta);
 
-            // Jump logic
             const currentTime = performance.now() / 1000;
             if (isJumping && keys.jump) {
                 const heldTime = currentTime - jumpStartTime;
@@ -189,11 +217,9 @@ export function initMovementScene() {
                 }
             }
 
-            // Gravity
             velocity.y -= GRAVITY * delta;
             camera.position.y += velocity.y * delta;
 
-            // Ground collision
             if (camera.position.y <= groundHeight) {
                 camera.position.y = groundHeight;
                 velocity.y = 0;
@@ -201,7 +227,6 @@ export function initMovementScene() {
                 isJumping = false;
             }
 
-            // Smooth crouch/stand transition
             const targetHeight = isCrouching ? CROUCH_HEIGHT : STAND_HEIGHT;
             const heightDiff = targetHeight - camera.position.y;
             if (Math.abs(heightDiff) > 0.001 && velocity.y === 0) {
