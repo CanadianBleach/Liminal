@@ -123,7 +123,7 @@ export function initMainScene() {
     metalness: 1,
     roughness: 0,
     velocity: { x: 0, y: 0, z: 0 },
-    position: { x: 0, y: 2, z: 0 },
+    position: { x: 999, y: 2, z: 999 },
     color: '#ff0000'
   });
   cube.castShadow = true;
@@ -152,49 +152,109 @@ export function initMainScene() {
   console.log(ground.top);
   console.log(cube.bottom);
 
-  const keys = {
-    a: { pressed: false },
-    d: { pressed: false },
-    s: { pressed: false },
-    w: { pressed: false }
+  const KEYS = {
+    'a': 65,
+    's': 83,
+    'w': 87,
+    'd': 68,
   };
-
-  window.addEventListener('keydown', (event) => {
-    switch (event.code) {
-      case 'KeyA':
-        keys.a.pressed = true;
-        break;
-      case 'KeyD':
-        keys.d.pressed = true;
-        break;
-      case 'KeyS':
-        keys.s.pressed = true;
-        break;
-      case 'KeyW':
-        keys.w.pressed = true;
-        break;
-      case 'Space':
-        cube.velocity.y = 0.08;
-        break;
+  
+  function clamp(x, a, b) {
+    return Math.min(Math.max(x, a), b);
+  }
+  
+  class InputController {
+    constructor(target) {
+      this.target_ = target || document;
+      this.initialize_();    
     }
-  });
-
-  window.addEventListener('keyup', (event) => {
-    switch (event.code) {
-      case 'KeyA':
-        keys.a.pressed = false;
-        break;
-      case 'KeyD':
-        keys.d.pressed = false;
-        break;
-      case 'KeyS':
-        keys.s.pressed = false;
-        break;
-      case 'KeyW':
-        keys.w.pressed = false;
-        break;
+  
+    initialize_() {
+      this.current_ = {
+        leftButton: false,
+        rightButton: false,
+        mouseXDelta: 0,
+        mouseYDelta: 0,
+        mouseX: 0,
+        mouseY: 0,
+      };
+      this.previous_ = null;
+      this.keys_ = {};
+      this.previousKeys_ = {};
+      this.target_.addEventListener('mousedown', (e) => this.onMouseDown_(e), false);
+      this.target_.addEventListener('mousemove', (e) => this.onMouseMove_(e), false);
+      this.target_.addEventListener('mouseup', (e) => this.onMouseUp_(e), false);
+      this.target_.addEventListener('keydown', (e) => this.onKeyDown_(e), false);
+      this.target_.addEventListener('keyup', (e) => this.onKeyUp_(e), false);
     }
-  });
+  
+    onMouseMove_(e) {
+      this.current_.mouseX = e.pageX - window.innerWidth / 2;
+      this.current_.mouseY = e.pageY - window.innerHeight / 2;
+  
+      if (this.previous_ === null) {
+        this.previous_ = {...this.current_};
+      }
+  
+      this.current_.mouseXDelta = this.current_.mouseX - this.previous_.mouseX;
+      this.current_.mouseYDelta = this.current_.mouseY - this.previous_.mouseY;
+    }
+  
+    onMouseDown_(e) {
+      this.onMouseMove_(e);
+  
+      switch (e.button) {
+        case 0: {
+          this.current_.leftButton = true;
+          break;
+        }
+        case 2: {
+          this.current_.rightButton = true;
+          break;
+        }
+      }
+    }
+  
+    onMouseUp_(e) {
+      this.onMouseMove_(e);
+  
+      switch (e.button) {
+        case 0: {
+          this.current_.leftButton = false;
+          break;
+        }
+        case 2: {
+          this.current_.rightButton = false;
+          break;
+        }
+      }
+    }
+  
+    onKeyDown_(e) {
+      this.keys_[e.keyCode] = true;
+    }
+  
+    onKeyUp_(e) {
+      this.keys_[e.keyCode] = false;
+    }
+  
+    key(keyCode) {
+      return !!this.keys_[keyCode];
+    }
+  
+    isReady() {
+      return this.previous_ !== null;
+    }
+  
+    update(_) {
+      if (this.previous_ !== null) {
+        this.current_.mouseXDelta = this.current_.mouseX - this.previous_.mouseX;
+        this.current_.mouseYDelta = this.current_.mouseY - this.previous_.mouseY;
+  
+        this.previous_ = {...this.current_};
+      }
+    }
+  };
 
   const enemies = [];
   let frames = 0;
@@ -207,13 +267,13 @@ export function initMainScene() {
     renderer.render(scene, camera);
 
     // movement code
-    cube.velocity.x = 0;
-    cube.velocity.z = 0;
-    if (keys.a.pressed) cube.velocity.x = -0.05;
-    else if (keys.d.pressed) cube.velocity.x = 0.05;
+ //   cube.velocity.x = 0;
+ //   cube.velocity.z = 0;
+ //   if (keys.a.pressed) cube.velocity.x = -0.05;
+ //   else if (keys.d.pressed) cube.velocity.x = 0.05;
 
-    if (keys.s.pressed) cube.velocity.z = 0.05;
-    else if (keys.w.pressed) cube.velocity.z = -0.05;
+ //   if (keys.s.pressed) cube.velocity.z = 0.05;
+ //   else if (keys.w.pressed) cube.velocity.z = -0.05;
 
     cube.update(ground);
 
