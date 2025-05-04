@@ -1,322 +1,397 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
-import { loadHDRI } from '../loaders/hdriLoader.js';
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
+import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
+import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
+
+import { EnemyManager } from './enemyManager.js';
+
+
+const MOVE_SPEED = 10.0;
+const JUMP_SPEED = 2.25;
+const GRAVITY = 20;
+const MAX_JUMP_DURATION = 0.25;
+const STAND_HEIGHT = 1.6;
+const CROUCH_HEIGHT = 1.0;
+const CROUCH_SPEED_MULTIPLIER = 0.4;
+const SPRINT_SPEED_MULTIPLIER = 1.2;
+const MAX_SPRINT_DURATION = 5.0;
+const SPRINT_RECHARGE_RATE = 0.5;
+const BASE_FOV = 80;
+const SPRINT_FOV = 105;
+
+let flickerMaterial;
+
+const flashlightState = {
+    isOn: false,
+    battery: 15.0,
+    maxBattery: 15.0,
+    rechargeRate: 2.0,
+    drainRate: 1.0,
+    flashlightIntensity: 100,
+    flashlight: null
+};
+
+export function setupPostProcessingEffects(renderer, scene, camera) {
+    const composer = new EffectComposer(renderer);
+
+    // Base render pass
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    // Convert to black & white
+    const luminosityPass = new ShaderPass(LuminosityShader);
+    composer.addPass(luminosityPass);
+
+    // Add film grain and scanlines
+    const filmPass = new FilmPass(
+        0.4,   // noise intensity
+        0.025,  // scanline intensity
+        648,    // scanline count
+        false   // grayscale (already handled by luminosity)
+    );
+    composer.addPass(filmPass);
+
+    // Add vignette
+    const vignettePass = new ShaderPass(VignetteShader);
+    vignettePass.uniforms['offset'].value = 1.0;
+    vignettePass.uniforms['darkness'].value = 1.2;
+    composer.addPass(vignettePass);
+
+    return composer;
+}
 
 export function initMainScene() {
-  // Set up scene
-  const scene = new THREE.Scene();
-  const clock = new THREE.Clock();
-  const camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
+    const { scene, camera, renderer, controls } = initCore();
+    const playerState = initPlayerState();
+    const clock = new THREE.Clock();
 
-  const renderer = new THREE.WebGLRenderer({
-    alpha: true,
-    antialias: true
-  });
-  renderer.shadowMap.enabled = true;
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+    const composer = setupPostProcessingEffects(renderer, scene, camera);
 
-  const controls = new FirstPersonControls(camera, renderer.domElement);
-  controls.movementSpeed = 20;
-  controls.lookSpeed = 0.1;
-  controls.lookVertical = true;
+    const enemyManager = new EnemyManager(scene, camera);
 
-  camera.position.set(4.61, 2.74, 8);
+    document.body.appendChild(renderer.domElement);
+    scene.add(controls.object);
+    addEnvironment(scene);
+    loadGLBModel(scene);
 
-  // Load HDRI background/environment
-  loadHDRI(scene, "/textures/hdri/metro_vijzelgracht_4k.hdr");
+    const { flashlight, flashlightTarget } = createFlashlight(camera);
+    flashlightState.flashlight = flashlight;
+    flashlight.visible = false;
+    scene.add(flashlight, flashlightTarget);
 
-  // const controls = new OrbitControls(camera, renderer.domElement);
+    document.body.addEventListener('click', () => controls.lock());
+    setupInputHandlers(playerState);
 
-  class Box extends THREE.Mesh {
-    constructor({
-      width,
-      height,
-      depth,
-      color = '#ffffff',
-      metalness = 0,
-      roughness = 1,
-      velocity = { x: 0, y: 0, z: 0 },
-      position = { x: 999, y: 999, z: 999 },
-      zAcceleration = false
-    }) {
-      super(
-        new THREE.BoxGeometry(width, height, depth),
-        new THREE.MeshStandardMaterial({ color, metalness, roughness })
-      );
+    function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+        enemyManager.update(delta);
 
-      this.width = width;
-      this.height = height;
-      this.depth = depth;
-
-      this.position.set(position.x, position.y, position.z);
-
-      this.right = this.position.x + this.width / 2;
-      this.left = this.position.x - this.width / 2;
-
-      this.bottom = this.position.y - this.height / 2;
-      this.top = this.position.y + this.height / 2;
-
-      this.front = this.position.z + this.depth / 2;
-      this.back = this.position.z - this.depth / 2;
-
-      this.velocity = velocity;
-      this.gravity = -0.002;
-
-      this.zAcceleration = zAcceleration;
-    }
-
-    updateSides() {
-      this.right = this.position.x + this.width / 2;
-      this.left = this.position.x - this.width / 2;
-
-      this.bottom = this.position.y - this.height / 2;
-      this.top = this.position.y + this.height / 2;
-
-      this.front = this.position.z + this.depth / 2;
-      this.back = this.position.z - this.depth / 2;
-    }
-
-    update(ground) {
-      this.updateSides();
-
-      if (this.zAcceleration) this.velocity.z += 0.0003;
-
-      this.position.x += this.velocity.x;
-      this.position.z += this.velocity.z;
-
-      this.applyGravity(ground);
-    }
-
-    applyGravity(ground) {
-      this.velocity.y += this.gravity;
-
-      if (boxCollision({ box1: this, box2: ground })) {
-        const friction = 0.8;
-        this.velocity.y *= friction;
-        this.velocity.y = -this.velocity.y;
-      } else {
-        this.position.y += this.velocity.y;
-      }
-    }
-  }
-
-  function boxCollision({ box1, box2 }) {
-    const xCollision = box1.right >= box2.left && box1.left <= box2.right;
-    const yCollision =
-      box1.bottom + box1.velocity.y <= box2.top && box1.top >= box2.bottom;
-    const zCollision = box1.front >= box2.back && box1.back <= box2.front;
-
-    return xCollision && yCollision && zCollision;
-  }
-
-  const cube = new Box({
-    width: 1,
-    height: 1,
-    depth: 1,
-    metalness: 1,
-    roughness: 0,
-    velocity: { x: 0, y: 0, z: 0 },
-    position: { x: 999, y: 2, z: 999 },
-    color: '#ff0000'
-  });
-  cube.castShadow = true;
-  scene.add(cube);
-
-  const ground = new Box({
-    width: 50,
-    height: 0.5,
-    depth: 50,
-    metalness: 1,
-    roughness: 1,
-    color: '#89CFF0',
-    position: { x: 0, y: 0, z: 0 }
-  });
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(0, 3, 1);
-  light.castShadow = true;
-  scene.add(light);
-
-  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-
-  camera.position.z = 5;
-  console.log(ground.top);
-  console.log(cube.bottom);
-
-  const KEYS = {
-    'a': 65,
-    's': 83,
-    'w': 87,
-    'd': 68,
-  };
-  
-  function clamp(x, a, b) {
-    return Math.min(Math.max(x, a), b);
-  }
-  
-  class InputController {
-    constructor(target) {
-      this.target_ = target || document;
-      this.initialize_();    
-    }
-  
-    initialize_() {
-      this.current_ = {
-        leftButton: false,
-        rightButton: false,
-        mouseXDelta: 0,
-        mouseYDelta: 0,
-        mouseX: 0,
-        mouseY: 0,
-      };
-      this.previous_ = null;
-      this.keys_ = {};
-      this.previousKeys_ = {};
-      this.target_.addEventListener('mousedown', (e) => this.onMouseDown_(e), false);
-      this.target_.addEventListener('mousemove', (e) => this.onMouseMove_(e), false);
-      this.target_.addEventListener('mouseup', (e) => this.onMouseUp_(e), false);
-      this.target_.addEventListener('keydown', (e) => this.onKeyDown_(e), false);
-      this.target_.addEventListener('keyup', (e) => this.onKeyUp_(e), false);
-    }
-  
-    onMouseMove_(e) {
-      this.current_.mouseX = e.pageX - window.innerWidth / 2;
-      this.current_.mouseY = e.pageY - window.innerHeight / 2;
-  
-      if (this.previous_ === null) {
-        this.previous_ = {...this.current_};
-      }
-  
-      this.current_.mouseXDelta = this.current_.mouseX - this.previous_.mouseX;
-      this.current_.mouseYDelta = this.current_.mouseY - this.previous_.mouseY;
-    }
-  
-    onMouseDown_(e) {
-      this.onMouseMove_(e);
-  
-      switch (e.button) {
-        case 0: {
-          this.current_.leftButton = true;
-          break;
+        if (controls.isLocked) {
+            updatePlayer(delta, playerState, controls, camera);
         }
-        case 2: {
-          this.current_.rightButton = true;
-          break;
+
+        updateFlashlightBattery(delta);
+        updateFlashlight(camera, flashlight, flashlightTarget);
+        composer.render();
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+}
+
+// --- CORE SETUP ---
+
+function initCore() {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(BASE_FOV, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const controls = new PointerLockControls(camera, renderer.domElement);
+    camera.position.y = STAND_HEIGHT;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    return { scene, camera, renderer, controls };
+}
+
+function initPlayerState() {
+    return {
+        keys: { forward: false, backward: false, left: false, right: false, jump: false, sprint: false },
+        isCrouching: false,
+        velocity: new THREE.Vector3(),
+        direction: new THREE.Vector3(),
+        canJump: true,
+        isJumping: false,
+        jumpStartTime: 0,
+        sprintTime: MAX_SPRINT_DURATION,
+        sprintReleased: true
+    };
+}
+
+function addEnvironment(scene) {
+    scene.add(initGround());
+    initLighting(scene);
+}
+
+// --- INPUT HANDLING ---
+
+function setupInputHandlers(state) {
+    document.addEventListener('keydown', (e) => {
+        switch (e.code) {
+            case 'KeyW': state.keys.forward = true; break;
+            case 'KeyS': state.keys.backward = true; break;
+            case 'KeyA': state.keys.left = true; break;
+            case 'KeyD': state.keys.right = true; break;
+            case 'ControlLeft': state.isCrouching = true; break;
+            case 'ShiftLeft':
+                if (state.sprintTime > 0 && state.sprintReleased) state.keys.sprint = true;
+                break;
+            case 'Space':
+                if (state.canJump && !state.keys.jump) {
+                    state.keys.jump = true;
+                    state.jumpStartTime = performance.now() / 1000;
+                    state.isJumping = true;
+                    state.canJump = false;
+                }
+                break;
         }
-      }
-    }
-  
-    onMouseUp_(e) {
-      this.onMouseMove_(e);
-  
-      switch (e.button) {
-        case 0: {
-          this.current_.leftButton = false;
-          break;
-        }
-        case 2: {
-          this.current_.rightButton = false;
-          break;
-        }
-      }
-    }
-  
-    onKeyDown_(e) {
-      this.keys_[e.keyCode] = true;
-    }
-  
-    onKeyUp_(e) {
-      this.keys_[e.keyCode] = false;
-    }
-  
-    key(keyCode) {
-      return !!this.keys_[keyCode];
-    }
-  
-    isReady() {
-      return this.previous_ !== null;
-    }
-  
-    update(_) {
-      if (this.previous_ !== null) {
-        this.current_.mouseXDelta = this.current_.mouseX - this.previous_.mouseX;
-        this.current_.mouseYDelta = this.current_.mouseY - this.previous_.mouseY;
-  
-        this.previous_ = {...this.current_};
-      }
-    }
-  };
-
-  const enemies = [];
-  let frames = 0;
-  let spawnRate = 200;
-
-  function animate() {
-    const animationId = requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-    controls.update(delta);
-    renderer.render(scene, camera);
-
-    // movement code
- //   cube.velocity.x = 0;
- //   cube.velocity.z = 0;
- //   if (keys.a.pressed) cube.velocity.x = -0.05;
- //   else if (keys.d.pressed) cube.velocity.x = 0.05;
-
- //   if (keys.s.pressed) cube.velocity.z = 0.05;
- //   else if (keys.w.pressed) cube.velocity.z = -0.05;
-
-    cube.update(ground);
-
-    enemies.forEach((enemy) => {
-      enemy.update(ground);
-      if (boxCollision({ box1: cube, box2: enemy })) {
-        cancelAnimationFrame(animationId);
-        console.log('Game Over!');
-      }
     });
 
-    if (frames % spawnRate === 0) {
-      if (spawnRate > 20) spawnRate -= 20;
+    document.addEventListener('keyup', (e) => {
+        switch (e.code) {
+            case 'KeyW': state.keys.forward = false; break;
+            case 'KeyS': state.keys.backward = false; break;
+            case 'KeyA': state.keys.left = false; break;
+            case 'KeyD': state.keys.right = false; break;
+            case 'ControlLeft': state.isCrouching = false; break;
+            case 'ShiftLeft':
+                state.keys.sprint = false;
+                state.sprintReleased = true;
+                break;
+            case 'Space': state.keys.jump = false; break;
+        }
+    });
 
-      const enemy = new Box({
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: {
-          x: (Math.random() - 0.5) * 10,
-          y: ground.top + 0.5, // ensures enemy starts *on top* of the ground
-          z: -20
-        },
-        velocity: { x: 0, y: 0, z: 0.005 },
-        color: 'red',
-        zAcceleration: true
-      });
-      
-      enemy.castShadow = true;
-      scene.add(enemy);
-      enemies.push(enemy);
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    document.addEventListener('pointerdown', (e) => {
+        if (e.button === 2) toggleFlashlight();
+    });
+}
+
+// --- PLAYER MOVEMENT ---
+
+function updatePlayer(delta, state, controls, camera) {
+    const { keys, velocity, direction } = state;
+
+    velocity.x -= velocity.x * 10.0 * delta;
+    velocity.z -= velocity.z * 10.0 * delta;
+
+    direction.set(
+        Number(keys.right) - Number(keys.left),
+        0,
+        Number(keys.forward) - Number(keys.backward)
+    ).normalize();
+
+    let speed = MOVE_SPEED;
+    let isSprinting = false;
+
+    if (state.isCrouching) {
+        speed *= CROUCH_SPEED_MULTIPLIER;
+        state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
+    } else if (keys.sprint && state.sprintTime > 0) {
+        isSprinting = true;
+        speed *= SPRINT_SPEED_MULTIPLIER;
+        state.sprintTime -= delta;
+        if (state.sprintTime <= 0) {
+            state.sprintTime = 0;
+            keys.sprint = false;
+            state.sprintReleased = false;
+        }
+    } else {
+        state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
     }
 
-    frames++;
-  }
+    // Smooth FOV transition
+    const targetFov = isSprinting ? SPRINT_FOV : BASE_FOV;
+    camera.fov += (targetFov - camera.fov) * 10 * delta;
+    camera.updateProjectionMatrix();
 
-  animate();
+    const moveX = direction.x * speed * delta;
+    const moveZ = direction.z * speed * delta;
+
+    controls.moveRight(moveX);
+    controls.moveForward(moveZ);
+
+    const currentTime = performance.now() / 1000;
+    if (state.isJumping && keys.jump) {
+        const heldTime = currentTime - state.jumpStartTime;
+        if (heldTime < MAX_JUMP_DURATION) {
+            velocity.y = JUMP_SPEED;
+        } else {
+            state.isJumping = false;
+        }
+    }
+
+    velocity.y -= GRAVITY * delta;
+    camera.position.y += velocity.y * delta;
+
+    const groundHeight = state.isCrouching ? CROUCH_HEIGHT : STAND_HEIGHT;
+    if (camera.position.y <= groundHeight) {
+        camera.position.y = groundHeight;
+        velocity.y = 0;
+        state.canJump = true;
+        state.isJumping = false;
+    }
+
+    const heightDiff = groundHeight - camera.position.y;
+    if (Math.abs(heightDiff) > 0.001 && velocity.y === 0) {
+        camera.position.y += heightDiff * 10 * delta;
+    }
 }
-export function resizeMainScene(renderer, camera) {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
 
-  renderer.setSize(width, height);
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
+// --- FLASHLIGHT ---
+
+function toggleFlashlight() {
+    const light = flashlightState.flashlight;
+    if (flashlightState.isOn) {
+        flashlightState.isOn = false;
+        light.visible = false;
+    } else if (flashlightState.battery >= 1) {
+        flashlightState.isOn = true;
+        light.visible = true;
+        light.intensity = 25;
+    }
+}
+
+function updateFlashlightBattery(delta) {
+    const light = flashlightState.flashlight;
+
+    if (flashlightState.isOn) {
+        flashlightState.battery -= flashlightState.drainRate * delta;
+        flashlightState.battery = Math.max(0, flashlightState.battery);
+
+        if (flashlightState.battery < 1) {
+            flashlightState.isOn = false;
+            light.visible = false;
+            return;
+        }
+
+        if (flashlightState.battery < 5) {
+            light.visible = Math.random() > 0.95;
+        } else if (flashlightState.battery < 20) {
+            light.intensity = flashlightState.flashlightIntensity - 50 + Math.random() * 5;
+        } else if (flashlightState.battery < 50) {
+            light.intensity = flashlightState.flashlightIntensity - 25 + Math.random() * 2;
+        } else {
+            light.intensity = flashlightState.flashlightIntensity;
+        }
+    } else {
+        flashlightState.battery = Math.min(
+            flashlightState.maxBattery,
+            flashlightState.battery + flashlightState.rechargeRate * delta
+        );
+    }
+}
+
+function createFlashlight(camera) {
+    const light = new THREE.SpotLight(0xf8ffa2, flashlightState.flashlightIntensity, 90, Math.PI / 8, 0.2, 1);
+    light.castShadow = true;
+    const target = new THREE.Object3D();
+    light.target = target;
+    return { flashlight: light, flashlightTarget: target };
+}
+
+function updateFlashlight(camera, flashlight, target) {
+    const right = new THREE.Vector3();
+    camera.getWorldDirection(right);
+    right.cross(camera.up).normalize();
+
+    const offset = right.multiplyScalar(0.3).add(new THREE.Vector3(0, -0.25, 0));
+    flashlight.position.lerp(camera.position.clone().add(offset), 0.15);
+
+    const lookDir = new THREE.Vector3();
+    camera.getWorldDirection(lookDir);
+    const targetPos = camera.position.clone().add(lookDir.multiplyScalar(10));
+    target.position.lerp(targetPos, 0.15);
+    target.updateMatrixWorld();
+
+    flashlight.lookAt(target.position);
+}
+
+// --- SCENE HELPERS ---
+
+function initGround() {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    const size = 64;
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+            ctx.fillStyle = (x + y) % 2 ? '#000' : '#fff';
+            ctx.fillRect(x * size, y * size, size, size);
+        }
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(10, 10);
+    const material = new THREE.MeshStandardMaterial({ map: texture });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), material);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = -0.01;
+    mesh.receiveShadow = true;
+    return mesh;
+}
+
+function initLighting(scene) {
+    scene.add(new THREE.AmbientLight(0xffffff, 4));
+}
+
+function loadGLBModel(scene) {
+    const loader = new GLTFLoader();
+    loader.load('./models/backroom_lit.glb', (gltf) => {
+        const model = gltf.scene;
+        model.position.set(-5, 0, 0);
+        model.scale.set(1.5, 1.5, 1.5);
+
+        model.traverse((child) => {
+            if (child.isMesh) {
+                const material = child.material;
+
+                // Replace MeshBasicMaterial with MeshStandardMaterial for proper lighting
+                if (material.isMeshBasicMaterial) {
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: material.color,
+                        map: material.map,
+                    });
+                }
+
+                child.castShadow = true;
+                child.receiveShadow = true;
+                child.material.needsUpdate = true;
+
+                // Check for emissive property
+                if (material.emissive && material.emissiveIntensity > 0) {
+                    const light = new THREE.PointLight(0xffffff, 100, 10);
+                    light.position.copy(child.getWorldPosition(new THREE.Vector3()));
+                    light.castShadow = true;
+                    scene.add(light);
+                }
+            }
+        });
+
+        scene.add(model);
+    });
 }
