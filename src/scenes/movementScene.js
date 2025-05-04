@@ -9,7 +9,6 @@ import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
 
-
 const MOVE_SPEED = 10.0;
 const JUMP_SPEED = 2.25;
 const GRAVITY = 20;
@@ -22,8 +21,6 @@ const MAX_SPRINT_DURATION = 5.0;
 const SPRINT_RECHARGE_RATE = 0.5;
 const BASE_FOV = 80;
 const SPRINT_FOV = 105;
-
-let flickerMaterial;
 
 const flashlightState = {
     isOn: false,
@@ -83,6 +80,21 @@ export function initMovementScene() {
 
     document.body.addEventListener('click', () => controls.lock());
     setupInputHandlers(playerState);
+
+    // setup enemy texture
+    const imageDataUrl = localStorage.getItem('enemyTexture');
+    console.log(imageDataUrl); // Should NOT be null
+    if (imageDataUrl) {
+        const texture = new THREE.TextureLoader().load(imageDataUrl, () => {
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshStandardMaterial({ map: texture });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(0, 1, -5);
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+            scene.add(cube);
+        });
+    }
 
     function animate() {
         requestAnimationFrame(animate);

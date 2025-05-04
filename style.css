@@ -41,7 +41,7 @@ body {
   animation: glow 2s ease-in-out infinite alternate;
 }
 
-#start-button {
+button {
   margin: 16px;
   padding: 15px 30px;
   font-size: 1.5em;
@@ -56,12 +56,12 @@ body {
   user-select: none;
 }
 
-#start-button:hover {
+button:hover {
   background: rgba(255, 255, 255, 0.1);
   transform: scale(1.1);
 }
 
-#start-button::before {
+button::before {
   content: "";
   position: absolute;
   top: 0;
@@ -77,58 +77,23 @@ body {
   transition: 0.5s;
 }
 
-#start-button:hover::before {
+button:hover::before {
   left: 100%;
 }
 
-#test-button {
-  margin: 16px;
-  padding: 15px 30px;
-  font-size: 1.5em;
-  background: transparent;
-  color: #fff;
-  border: 2px solid #fff;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  z-index: 1000;
-  user-select: none;
-}
-
-#test-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.1);
-}
-
-#test-button::before {
-  content: "";
+.hidden-file-input {
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: 0.5s;
+  left: -9999px;
+  opacity: 0;
 }
 
-#test-button:hover::before {
+.upload-wrapper {
+  position: relative; /* Needed for absolute positioning */
+  display: inline-block; /* Or another display style */
+}
+
+input:hover::before {
   left: 100%;
-}
-
-@keyframes glow {
-  from {
-    text-shadow: 0 0 5px #fff5ca, 0 0 10px #ffffe8, 0 0 15px #fff, 0 0 20px #fff;
-  }
-  to {
-    text-shadow: 0 0 10px #fff5ca, 0 0 20px #fff, 0 0 30px #ffffe8,
-      0 0 40px #fff;
-  }
 }
 
 #instructions {
