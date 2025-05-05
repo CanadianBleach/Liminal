@@ -163,73 +163,76 @@ function initCore() {
   function updatePlayer(delta, state, controls, camera) {
     const { keys, velocity, direction } = state;
   
+    // Dampen horizontal velocity
     velocity.x -= velocity.x * 10.0 * delta;
     velocity.z -= velocity.z * 10.0 * delta;
   
+    // Movement direction
     direction.set(
       Number(keys.right) - Number(keys.left),
       0,
       Number(keys.forward) - Number(keys.backward)
     ).normalize();
   
+    // Movement speed
     let speed = MOVE_SPEED;
-let isSprinting = false;
-
-if (state.isCrouching) {
-  speed *= 0.4;
-  state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
-} else if (keys.sprint && state.sprintTime > 0) {
-  isSprinting = true;
-  speed *= 1.2;
-  state.sprintTime -= delta;
-  if (state.sprintTime <= 0) {
-    state.sprintTime = 0;
-    keys.sprint = false;
-    state.sprintReleased = false;
-  }
-} else {
-  state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
-}
-
-// Smooth FOV transition
-const targetFov = isSprinting ? SPRINT_FOV : BASE_FOV;
-camera.fov += (targetFov - camera.fov) * 10 * delta;
-camera.updateProjectionMatrix();
-
+    let isSprinting = false;
   
+    if (state.isCrouching) {
+      speed *= 0.4;
+      state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
+    } else if (keys.sprint && state.sprintTime > 0) {
+      isSprinting = true;
+      speed *= 1.2;
+      state.sprintTime -= delta;
+      if (state.sprintTime <= 0) {
+        state.sprintTime = 0;
+        keys.sprint = false;
+        state.sprintReleased = false;
+      }
+    } else {
+      state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
+    }
+  
+    // Apply movement
     controls.moveRight(direction.x * speed * delta);
     controls.moveForward(direction.z * speed * delta);
   
-    velocity.y -= GRAVITY * delta;
-    camera.position.y += velocity.y * delta;
+    // Smooth FOV transition
+    const targetFov = isSprinting ? SPRINT_FOV : BASE_FOV;
+    camera.fov += (targetFov - camera.fov) * 10 * delta;
+    camera.updateProjectionMatrix();
   
-// Decide what the player's ground height should be
-const groundHeight = state.isCrouching ? 1.0 : 1.6;
-
-// If below ground, reset to standing/crouch height
-if (camera.position.y <= groundHeight) {
-  camera.position.y = groundHeight;
-  velocity.y = 0;
-  state.canJump = true;
-  state.isJumping = false;
-}
-
-// Smooth camera transition when changing crouch state
-const heightDiff = groundHeight - camera.position.y;
-if (Math.abs(heightDiff) > 0.001 && velocity.y === 0) {
-  camera.position.y += heightDiff * 10 * delta;
-}
-  
-    const timeNow = performance.now() / 1000;
+    // Handle jumping
+    const now = performance.now() / 1000;
     if (state.isJumping && keys.jump) {
-      const held = timeNow - state.jumpStartTime;
+      const held = now - state.jumpStartTime;
       if (held < MAX_JUMP_DURATION) {
         velocity.y = JUMP_SPEED;
       } else {
         state.isJumping = false;
       }
     }
+  
+    // Apply gravity
+    velocity.y -= GRAVITY * delta;
+    camera.position.y += velocity.y * delta;
+  
+    // Handle ground and crouch height
+    const groundHeight = state.isCrouching ? 1.0 : 1.6;
+    if (camera.position.y <= groundHeight) {
+      camera.position.y = groundHeight;
+      velocity.y = 0;
+      state.canJump = true;
+      state.isJumping = false;
+    }
+  
+    const heightDiff = groundHeight - camera.position.y;
+    if (Math.abs(heightDiff) > 0.001 && velocity.y === 0) {
+      camera.position.y += heightDiff * 10 * delta;
+    }
   }
+  
   
   function shootBullet(camera, scene) {
     const bullet = new THREE.Mesh(
