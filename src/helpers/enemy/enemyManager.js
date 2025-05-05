@@ -1,12 +1,13 @@
 // EnemyManager.js
 import * as THREE from 'three';
 import { Enemy } from './enemy.js';
-
 export class EnemyManager {
-  constructor(scene, camera) {
+  constructor(scene, camera, textureUrl) {
     this.scene = scene;
     this.camera = camera;
     this.enemies = [];
+
+    this.textureUrl = './textures/enemy1.png'
 
     this.spawnInterval = 8; // seconds between spawns (start slow)
     this.spawnTimer = 0;
@@ -19,7 +20,7 @@ export class EnemyManager {
     this.enemyLifetime = 25; // seconds before enemy disappears
   }
 
-  spawnEnemy(textureUrl = './textures/enemy1.png') {
+  spawnEnemy(textureUrl) {
     const spawnPos = new THREE.Vector3(
       Math.random() * 40 - 20,
       1.5,
@@ -45,7 +46,7 @@ export class EnemyManager {
 
     // Spawn enemy
     if (this.spawnTimer >= this.spawnInterval) {
-      this.spawnEnemy();
+      this.spawnEnemy(this.textureUrl);
       this.spawnTimer = 0;
     }
 

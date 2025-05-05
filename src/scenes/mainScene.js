@@ -9,7 +9,7 @@ import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
 
-import { EnemyManager } from './enemyManager.js';
+import { EnemyManager } from '../helpers/enemy/enemyManager';
 
 
 const MOVE_SPEED = 10.0;

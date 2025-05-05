@@ -29,10 +29,13 @@ export class Enemy {
   }
 
   loadTexture(url) {
+    // setup enemy texture
+    const imageDataUrl = localStorage.getItem('enemyTexture');
+
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
     loader.load(
-      url,
+      imageDataUrl,
       (texture) => {
         const material = new THREE.MeshBasicMaterial({
           map: texture,
