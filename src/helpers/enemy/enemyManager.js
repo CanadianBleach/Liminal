@@ -7,7 +7,7 @@ export class EnemyManager {
     this.camera = camera;
     this.enemies = [];
 
-    this.textureUrl = './textures/enemy1.png'
+    this.textureUrl = './textures/scary.png'
 
     this.spawnInterval = 8; // seconds between spawns (start slow)
     this.spawnTimer = 0;
