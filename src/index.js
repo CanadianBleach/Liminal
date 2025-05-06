@@ -21,14 +21,6 @@ startButton.addEventListener("click", () => {
     }, 1000);
 });
 
-// Start Test Scene
-testButton.addEventListener("click", () => {
-    fader.classList = 'hidden';
-    setTimeout(() => {
-        window.location.href = '/movement';
-    }, 1000);
-});
-
 // Upload Button Behavior
 uploadButton.addEventListener('click', () => {
     fileInput.click();
