@@ -9,7 +9,6 @@ import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js
 
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers, updatePlayer } from '../helpers/player/player.js';
-import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 
 import {
     flashlightState,
