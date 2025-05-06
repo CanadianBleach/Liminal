@@ -1,6 +1,5 @@
 // UI Elements
 const startButton = document.getElementById("start-button");
-const testButton = document.getElementById("test-button");
 const fader = document.getElementById("fader");
 const webLoadFader = document.getElementById("web-load-fader");
 const uploadButton = document.getElementById('upload-button');
