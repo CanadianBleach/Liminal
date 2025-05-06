@@ -1,0 +1,17 @@
+#battery-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 150px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #fff;
+  z-index: 1000;
+}
+
+#battery-fill {
+  height: 100%;
+  width: 100%;
+  background: limegreen;
+  transition: width 0.1s ease, background 0.2s;
+}
