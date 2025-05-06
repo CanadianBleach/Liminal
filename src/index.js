@@ -1,6 +1,5 @@
 // UI Elements
 const startButton = document.getElementById("start-button");
-const testButton = document.getElementById("test-button");
 const fader = document.getElementById("fader");
 const webLoadFader = document.getElementById("web-load-fader");
 const uploadButton = document.getElementById('upload-button');
@@ -18,14 +17,6 @@ startButton.addEventListener("click", () => {
     fader.classList = 'hidden';
     setTimeout(() => {
         window.location.href = '/play';
-    }, 1000);
-});
-
-// Start Test Scene
-testButton.addEventListener("click", () => {
-    fader.classList = 'hidden';
-    setTimeout(() => {
-        window.location.href = '/movement';
     }, 1000);
 });
 
