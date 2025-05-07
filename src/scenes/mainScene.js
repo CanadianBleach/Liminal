@@ -12,6 +12,8 @@ import { updatePlayerPhysics } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
 import BulletManager from '../combat/bulletManager.js';
+import { loadGunModel } from '../helpers/player/gunModel.js';
+import { attachGun, triggerRecoil, updateGunAnimation } from '../helpers/player/gunAnimation.js';
 
 import {
     createFlashlight,
@@ -57,6 +59,9 @@ export async function initMainScene() {
     document.body.appendChild(renderer.domElement);
     scene.add(controls.object);
 
+    const gun = await loadGunModel(camera);
+    attachGun(gun);
+
     addEnvironment(scene);
     loadGLBModel(scene);
 
@@ -97,6 +102,7 @@ export async function initMainScene() {
         });
         
         bulletManager.update(delta);
+        updateGunAnimation(delta);
         composer.render();
     }
 
@@ -152,6 +158,7 @@ function setupEvents(camera, renderer, controls, bulletManager) {
             shootOrigin.add(shootDir.clone().multiplyScalar(0.5));
 
             bulletManager.shoot(shootOrigin, shootDir);
+            triggerRecoil();
         }
     });    
     
