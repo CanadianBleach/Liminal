@@ -8,11 +8,11 @@ import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
 
+import { updatePlayerPhysics } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
-import { initPlayerState, setupInputHandlers, updatePlayer } from '../helpers/player/player.js';
+import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
 
 import {
-    flashlightState,
     createFlashlight,
     updateFlashlightBattery,
     updateFlashlight,
@@ -28,20 +28,29 @@ export async function initMainScene() {
     const playerState = initPlayerState();
     const enemyManager = new EnemyManager(scene, camera);
 
-    let rapierWorld;
-let playerBody;
+    await RAPIER.init();
 
-await RAPIER.init();
+    const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
 
-rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
+    // Create player rigid body and collider
+    const playerDesc = RAPIER.RigidBodyDesc.dynamic()
+        .setTranslation(0, 2.0, 0); // Starting position
 
-const playerDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
-    .setTranslation(camera.position.x, camera.position.y, camera.position.z);
-playerBody = rapierWorld.createRigidBody(playerDesc);
+    const playerBody = rapierWorld.createRigidBody(playerDesc);
+    playerBody.setEnabledRotations(false, true, false); // Lock X and Z rotation
+    playerBody.setAngularDamping(1.0);
 
-const playerCollider = RAPIER.ColliderDesc.capsule(0.4, 0.9);
-rapierWorld.createCollider(playerCollider, playerBody);
+    // 👉 Place this right after the body is created:
+    const playerColliderDesc = RAPIER.ColliderDesc.capsule(0.35, 0.8)
+        .setFriction(0.0);
+    const playerCollider = rapierWorld.createCollider(playerColliderDesc, playerBody);
 
+    // Create static ground collider
+    const groundDesc = RAPIER.RigidBodyDesc.fixed()
+        .setTranslation(0, 0, 0);
+    const groundBody = rapierWorld.createRigidBody(groundDesc);
+    const groundCollider = RAPIER.ColliderDesc.cuboid(50, 0.5, 50).setFriction(.01);
+    rapierWorld.createCollider(groundCollider, groundBody);
 
     document.body.appendChild(renderer.domElement);
     scene.add(controls.object);
@@ -71,36 +80,17 @@ rapierWorld.createCollider(playerCollider, playerBody);
         enemyManager.update(delta);
 
         if (controls.isLocked) {
-            const moveVec = updatePlayer(delta, playerState, controls, camera); // now returns THREE.Vector3
-        
-            const moveSpeed = 5;
-            const scaled = moveVec.clone().multiplyScalar(moveSpeed * delta);
-            const currentPos = playerBody.translation();
-        
-            const nextPos = {
-                x: currentPos.x + scaled.x,
-                y: currentPos.y,
-                z: currentPos.z + scaled.z
-            };
-        
-            playerBody.setNextKinematicTranslation(nextPos);
-        
-            if (moveVec.y > 0) {
-                playerBody.setLinvel({ x: 0, y: 5, z: 0 }, true); // basic jump velocity
-            }
-        
+            updatePlayerPhysics(delta, playerState, playerBody, controls, rapierWorld, playerCollider);
             rapierWorld.step();
-        
-            // Sync camera/controls with physics position
+
             const newPos = playerBody.translation();
             controls.object.position.set(newPos.x, newPos.y, newPos.z);
         }
-        
 
         // Flicker lights slightly
         flickeringLights.forEach(light => {
             if (Math.random() < 0.1) {
-                light.intensity = 60 + Math.random() * 60; // brief flicker
+                light.intensity = 60 + Math.random() * 60;
             }
         });
 
