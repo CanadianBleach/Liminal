@@ -14,6 +14,7 @@ import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js
 import BulletManager from '../combat/bulletManager.js';
 import { loadGunModel } from '../helpers/player/gunModel.js';
 import { attachGun, triggerRecoil, updateGunAnimation } from '../helpers/player/gunAnimation.js';
+import Gun from '../combat/gun.js';
 
 import {
     createFlashlight,
@@ -35,6 +36,7 @@ export async function initMainScene() {
 
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
     const bulletManager = new BulletManager(scene, rapierWorld);
+    const gunController = new Gun(bulletManager, camera);
 
     // Create player rigid body and collider
     const playerDesc = RAPIER.RigidBodyDesc.dynamic()
@@ -103,6 +105,7 @@ export async function initMainScene() {
         
         bulletManager.update(delta);
         updateGunAnimation(delta);
+        gunController.update(delta, controls);
         composer.render();
     }
 

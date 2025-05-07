@@ -17,7 +17,7 @@ export function updateGunAnimation(delta) {
   recoilVelocity *= 0.8; // damping
   recoilOffset += recoilVelocity;
 
-  gunMesh.position.z = -0.2 + recoilOffset; // adjust to your base offset
+  gunMesh.position.z = 0.2 + recoilOffset; // adjust to your base offset
 }
 console.log("✅ gunAnimation.js loaded");
 
