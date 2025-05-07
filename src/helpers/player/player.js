@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
 const MOVE_SPEED = 4;
-const JUMP_SPEED = 6;
+const MOVEMENT_INTERPOLATION = 6;
+const JUMP_SPEED = 5;
 const GRAVITY = 20;
 const MAX_JUMP_DURATION = 0.25;
 const STAND_HEIGHT = 1.6;
@@ -126,7 +127,7 @@ export function updatePlayerPhysics(delta, state, body, controls, rapierWorld, p
   // === Easing Horizontal Movement ===
   const isIdle = moveTarget.lengthSq() === 0;
   if (!isIdle) {
-    state.velocityTarget.lerp(moveTarget, 30 * delta);
+    state.velocityTarget.lerp(moveTarget, MOVEMENT_INTERPOLATION * delta);
   } else {
     state.velocityTarget.set(0, 0, 0);
   }
