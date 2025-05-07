@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 const MOVE_SPEED = 4;
 const MOVEMENT_INTERPOLATION = 6;
-const JUMP_SPEED = 10;
+const JUMP_SPEED = 7;
 const GRAVITY = 20;
 const MAX_JUMP_DURATION = 0.25;
 const STAND_HEIGHT = 1.6;
@@ -134,10 +134,10 @@ export function updatePlayerPhysics(delta, state, body, controls, rapierWorld, p
   }
 
   // === Simple Ground Detection via Vertical Velocity
-const grounded = Math.abs(currentVel.y) < 0.05;
-if (grounded) {
-  state.canJump = true;
-}
+  const grounded = Math.abs(currentVel.y) < 0.05;
+  if (grounded) {
+    state.canJump = true;
+  }
 
   // === Gravity + Jump ===
   let newY = currentVel.y;
@@ -150,13 +150,13 @@ if (grounded) {
 
   // === Apply Final Velocity ===
   // Apply gravity manually
-newY -= GRAVITY * delta;
+  newY -= GRAVITY * delta;
 
-const velocity = new THREE.Vector3(
-  state.velocityTarget.x,
-  newY,
-  state.velocityTarget.z
-);
+  const velocity = new THREE.Vector3(
+    state.velocityTarget.x,
+    newY,
+    state.velocityTarget.z
+  );
 
-body.setLinvel(velocity, true);
+  body.setLinvel(velocity, true);
 }
