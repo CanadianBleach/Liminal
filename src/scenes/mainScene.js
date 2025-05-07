@@ -11,6 +11,7 @@ import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js
 import { updatePlayerPhysics } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
+import BulletManager from '../combat/bulletManager.js';
 
 import {
     createFlashlight,
@@ -31,6 +32,7 @@ export async function initMainScene() {
     await RAPIER.init();
 
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
+    const bulletManager = new BulletManager(scene, rapierWorld);
 
     // Create player rigid body and collider
     const playerDesc = RAPIER.RigidBodyDesc.dynamic()
@@ -67,7 +69,7 @@ export async function initMainScene() {
     setupInputHandlers(playerState);
 
     // Resize & pointer lock
-    setupEvents(camera, renderer, controls);
+    setupEvents(camera, renderer, controls, bulletManager);
 
     // Main render loop
     function animate() {
@@ -93,7 +95,8 @@ export async function initMainScene() {
                 light.intensity = 60 + Math.random() * 60;
             }
         });
-
+        
+        bulletManager.update(delta);
         composer.render();
     }
 
@@ -128,7 +131,7 @@ function setupPostProcessingEffects(renderer, scene, camera) {
     return composer;
 }
 
-function setupEvents(camera, renderer, controls) {
+function setupEvents(camera, renderer, controls, bulletManager) {
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -136,8 +139,22 @@ function setupEvents(camera, renderer, controls) {
     });
 
     document.body.addEventListener('click', () => {
-        controls.lock();
-    });
+        if (!controls.isLocked) {
+            controls.lock();
+        } else {
+            const shootOrigin = new THREE.Vector3();
+            const shootDir = new THREE.Vector3();
+
+            camera.getWorldPosition(shootOrigin);
+            camera.getWorldDirection(shootDir).normalize();
+
+// Offset the origin a bit forward along the direction
+            shootOrigin.add(shootDir.clone().multiplyScalar(0.5));
+
+            bulletManager.shoot(shootOrigin, shootDir);
+        }
+    });    
+    
 
     // Add flashlight toggle on right click
     document.addEventListener('pointerdown', (e) => {
