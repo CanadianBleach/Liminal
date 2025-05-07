@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 const MOVE_SPEED = 4;
 const MOVEMENT_INTERPOLATION = 6;
-const JUMP_SPEED = 5;
+const JUMP_SPEED = 10;
 const GRAVITY = 20;
 const MAX_JUMP_DURATION = 0.25;
 const STAND_HEIGHT = 1.6;
@@ -75,7 +75,8 @@ export function updatePlayerPhysics(delta, state, body, controls, rapierWorld, p
   // === Movement State: Sprinting, Crouching, Speed ===
   let speed = MOVE_SPEED;
   let isSprinting = false;
-  const isAirborne = state.verticalVelocity !== 0;
+  const currentVel = body.linvel();
+  const isAirborne = Math.abs(currentVel.y) > 0.1;
 
   if (!isAirborne && state.isCrouching) {
     speed *= CROUCH_SPEED_MULTIPLIER;
@@ -132,44 +133,30 @@ export function updatePlayerPhysics(delta, state, body, controls, rapierWorld, p
     state.velocityTarget.set(0, 0, 0);
   }
 
-  // === Gravity and Jump Logic ===
-  const currentVel = body.linvel();
+  // === Simple Ground Detection via Vertical Velocity
+const grounded = Math.abs(currentVel.y) < 0.05;
+if (grounded) {
+  state.canJump = true;
+}
+
+  // === Gravity + Jump ===
   let newY = currentVel.y;
 
-  // Jump
-  if (state.isJumping) {
+  if (state.isJumping && state.canJump) {
     newY = JUMP_SPEED;
-    state.isJumping = false; // one-shot jump
+    state.canJump = false;
+    state.isJumping = false; // reset jump flag AFTER applying it
   }
 
   // === Apply Final Velocity ===
-  const velocity = new THREE.Vector3(
-    state.velocityTarget.x,
-    newY,
-    state.velocityTarget.z
-  );
+  // Apply gravity manually
+newY -= GRAVITY * delta;
 
-  body.setLinvel(velocity, true);
+const velocity = new THREE.Vector3(
+  state.velocityTarget.x,
+  newY,
+  state.velocityTarget.z
+);
 
-  // === Ground Contact Detection ===
-  let grounded = false;
-
-  console.log("Checking contacts for", playerCollider.handle);
-  rapierWorld.contactPairsWith(playerCollider.handle, (h1, h2, contactPair) => {
-    for (let i = 0; i < contactPair.numContactManifolds(); i++) {
-      console.log("Contact with:", h1, h2, "Normal Y:", normal.y);
-      const manifold = contactPair.contactManifold(i);
-      const normal = manifold.normal();
-      if (normal.y > 0.5) {
-        grounded = true;
-        break;
-      }
-    }
-  });
-
-  if (grounded) {
-    state.canJump = true;
-    state.isJumping = false;
-
-  }
+body.setLinvel(velocity, true);
 }
