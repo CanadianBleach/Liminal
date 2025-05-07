@@ -43,15 +43,16 @@ export function setupInputHandlers(state) {
       case 'ShiftLeft':
         if (state.sprintTime > 0 && state.sprintReleased) state.keys.sprint = true;
         break;
-      case 'Space':
-        if (state.canJump && !state.keys.jump) {
-          state.keys.jump = true;
-          state.jumpStartTime = performance.now() / 1000;
-          state.isJumping = true;
-          state.canJump = false;
-          state.shouldDive = true;
-        }
-        break;
+        case 'Space':
+          if (state.canJump && !state.keys.jump) {
+            state.keys.jump = true;
+            state.jumpStartTime = performance.now() / 1000;
+            state.isJumping = true;
+            state.canJump = false;
+            // If you're keeping diving behavior, leave this line:
+            state.shouldDive = true;
+          }
+          break;        
     }
   });
 
@@ -76,19 +77,14 @@ export function setupInputHandlers(state) {
 export function updatePlayer(delta, state, controls, camera) {
   const { keys, velocity, direction } = state;
 
-  velocity.x -= velocity.x * 10.0 * delta;
-  velocity.z -= velocity.z * 10.0 * delta;
-
-  direction.set(
-    Number(keys.right) - Number(keys.left),
-    0,
-    Number(keys.forward) - Number(keys.backward)
-  ).normalize();
-
-  const isAirborne = velocity.y !== 0;
+  // Determine base movement speed
   let speed = MOVE_SPEED;
   let isSprinting = false;
 
+  // Determine if airborne (used for crouch/sprint rules)
+  const isAirborne = velocity.y !== 0;
+
+  // Sprint/Crouch logic
   if (!isAirborne && state.isCrouching) {
     speed *= CROUCH_SPEED_MULTIPLIER;
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
@@ -105,53 +101,51 @@ export function updatePlayer(delta, state, controls, camera) {
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
   }
 
+  // FOV zoom effect for sprinting
   const targetFov = isSprinting ? SPRINT_FOV : BASE_FOV;
   camera.fov += (targetFov - camera.fov) * 10 * delta;
   camera.updateProjectionMatrix();
 
-  const now = performance.now() / 1000;
-  if (state.isJumping && keys.jump) {
-    const held = now - state.jumpStartTime;
-    if (held < MAX_JUMP_DURATION) {
-      velocity.y = JUMP_SPEED;
-    } else {
-      state.isJumping = false;
-    }
-  }
+  // Basic input direction (local)
+  // Basic input direction (local)
+direction.set(
+  Number(keys.right) - Number(keys.left),
+  0,
+  Number(keys.forward) - Number(keys.backward)
+);
 
-  velocity.y -= GRAVITY * delta;
-  camera.position.y += velocity.y * delta;
+if (direction.lengthSq() > 0) {
+  direction.normalize();
 
-  const groundHeight = state.isCrouching ? CROUCH_HEIGHT : STAND_HEIGHT;
-  const landing = camera.position.y <= groundHeight && velocity.y <= 0;
+  // Rotate input direction by camera yaw
+  // Rotate local direction to world space using camera
+const camDir = new THREE.Vector3();
+controls.getObject().getWorldDirection(camDir);
+camDir.y = 0;
+camDir.normalize();
 
-  if (landing) {
-    if (state.shouldDive && state.isCrouching) {
-      state.diveDirection.set(0, 0, 0);
-      camera.getWorldDirection(state.diveDirection);
-      state.diveDirection.y = 0;
-      state.diveDirection.normalize();
-      state.diveTimer = DIVE_DURATION;
-    }
+const right = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0, 1, 0)).normalize();
 
-    camera.position.y = groundHeight;
-    velocity.y = 0;
-    state.canJump = true;
-    state.isJumping = false;
-    state.shouldDive = false;
-  }
-
-  if (state.diveTimer > 0) {
-    controls.moveRight(state.diveDirection.x * DIVE_IMPULSE * delta);
-    controls.moveForward(state.diveDirection.z * DIVE_IMPULSE * delta);
-    state.diveTimer -= delta;
-  }
-
-  const heightDiff = groundHeight - camera.position.y;
-  if (Math.abs(heightDiff) > 0.001 && velocity.y === 0) {
-    camera.position.y += heightDiff * 10 * delta;
-  }
-
-  controls.moveRight(direction.x * speed * delta);
-  controls.moveForward(direction.z * speed * delta);
+const worldMove = new THREE.Vector3();
+worldMove.addScaledVector(camDir, direction.z);
+worldMove.addScaledVector(right, direction.x);
+direction.copy(worldMove.normalize());
+} else {
+  direction.set(0, 0, 0);
 }
+
+// JUMP HANDLING
+const now = performance.now() / 1000;
+if (state.isJumping && keys.jump) {
+  const held = now - state.jumpStartTime;
+  if (held >= MAX_JUMP_DURATION) {
+    state.isJumping = false;
+  }
+
+  // Signal upward movement
+  direction.y = 1;
+}
+
+return direction.clone();
+}
+

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -20,12 +21,27 @@ import {
 
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
-export function initMainScene() {
+export async function initMainScene() {
     const { scene, camera, renderer, controls } = initCore();
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
     const playerState = initPlayerState();
     const enemyManager = new EnemyManager(scene, camera);
+
+    let rapierWorld;
+let playerBody;
+
+await RAPIER.init();
+
+rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
+
+const playerDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
+    .setTranslation(camera.position.x, camera.position.y, camera.position.z);
+playerBody = rapierWorld.createRigidBody(playerDesc);
+
+const playerCollider = RAPIER.ColliderDesc.capsule(0.4, 0.9);
+rapierWorld.createCollider(playerCollider, playerBody);
+
 
     document.body.appendChild(renderer.domElement);
     scene.add(controls.object);
@@ -55,8 +71,31 @@ export function initMainScene() {
         enemyManager.update(delta);
 
         if (controls.isLocked) {
-            updatePlayer(delta, playerState, controls, camera);
+            const moveVec = updatePlayer(delta, playerState, controls, camera); // now returns THREE.Vector3
+        
+            const moveSpeed = 5;
+            const scaled = moveVec.clone().multiplyScalar(moveSpeed * delta);
+            const currentPos = playerBody.translation();
+        
+            const nextPos = {
+                x: currentPos.x + scaled.x,
+                y: currentPos.y,
+                z: currentPos.z + scaled.z
+            };
+        
+            playerBody.setNextKinematicTranslation(nextPos);
+        
+            if (moveVec.y > 0) {
+                playerBody.setLinvel({ x: 0, y: 5, z: 0 }, true); // basic jump velocity
+            }
+        
+            rapierWorld.step();
+        
+            // Sync camera/controls with physics position
+            const newPos = playerBody.translation();
+            controls.getObject().position.set(newPos.x, newPos.y, newPos.z);
         }
+        
 
         // Flicker lights slightly
         flickeringLights.forEach(light => {
