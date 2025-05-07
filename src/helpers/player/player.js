@@ -120,7 +120,7 @@ if (direction.lengthSq() > 0) {
   // Rotate input direction by camera yaw
   // Rotate local direction to world space using camera
 const camDir = new THREE.Vector3();
-controls.getObject().getWorldDirection(camDir);
+controls.object.getWorldDirection(camDir);
 camDir.y = 0;
 camDir.normalize();
 

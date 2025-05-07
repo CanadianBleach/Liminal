@@ -93,7 +93,7 @@ rapierWorld.createCollider(playerCollider, playerBody);
         
             // Sync camera/controls with physics position
             const newPos = playerBody.translation();
-            controls.getObject().position.set(newPos.x, newPos.y, newPos.z);
+            controls.object.position.set(newPos.x, newPos.y, newPos.z);
         }
         
 
