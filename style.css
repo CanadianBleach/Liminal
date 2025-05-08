@@ -41,6 +41,36 @@ body {
   animation: glow 2s ease-in-out infinite alternate;
 }
 
+#start-screen {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(45deg, #1a1a1a, #000000);
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 5px #fff5ca, 0 0 10px #ffffe8, 0 0 15px #fff, 0 0 20px #fff;
+  }
+  to {
+    text-shadow: 0 0 10px #fff5ca, 0 0 20px #fff, 0 0 30px #ffffe8,
+      0 0 40px #fff;
+  }
+}
+
+#start-screen h1 {
+  color: #fff;
+  font-size: 5em;
+  font-family: "Arial", sans-serif;
+  letter-spacing: 15px;
+  margin-bottom: 50px;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
 button {
   margin: 16px;
   padding: 15px 30px;

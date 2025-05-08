@@ -108,7 +108,8 @@ export async function initMainScene() {
 function initCore() {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const canvas = document.getElementById('game-canvas');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     const controls = new PointerLockControls(camera, renderer.domElement);
 
     camera.position.y = 1.6;

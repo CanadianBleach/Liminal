@@ -1,5 +1,9 @@
-import { initMainScene } from "../scenes/mainScene";
+import { initMainScene } from "../scenes/mainScene.js";
 
-window.addEventListener('load', function () {
-    initMainScene()
+window.addEventListener('load', () => {
+  const loader = document.getElementById('container');
+  if (loader) {
+    loader.classList.remove('hidden');
+    loader.classList.add('visible');
+  }
 });

@@ -3,16 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <title>Liminal</title>
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-        background-color: black;
-      }
-    </style>
+    <link rel="stylesheet" href="./src/css/play.css" />
   </head>
   <body>
+    <div id="game-container" class="hidden">
+      <canvas id="game-canvas"></canvas>
+      <!-- Three.js will use this -->
+    </div>
+
+    <div id="container" class="hidden">
+      <span class="loading-anim"> </span>
+    </div>
     <script type="module" src="./src/pages/play.js"></script>
-    <style href="./style.css"></style>
   </body>
 </html>
