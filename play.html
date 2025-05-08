@@ -6,14 +6,14 @@
     <link rel="stylesheet" href="./src/css/play.css" />
   </head>
   <body>
-    <div id="game-container" class="hidden">
-      <canvas id="game-canvas"></canvas>
-      <!-- Three.js will use this -->
+    <div id="container" class="visible">
+      <span class="loading-anim"></span>
     </div>
 
-    <div id="container" class="hidden">
-      <span class="loading-anim"> </span>
+    <div id="game-container" class="hidden">
+      <canvas id="game-canvas"></canvas>
     </div>
+
     <script type="module" src="./src/pages/play.js"></script>
   </body>
 </html>

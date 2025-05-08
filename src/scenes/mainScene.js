@@ -1,4 +1,4 @@
-// Refactored mainScene.js with gun animation and movement state syncing
+// Refactored mainScene.js to return startRendering and delay animation start
 
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
@@ -37,7 +37,6 @@ export async function initMainScene() {
     const bulletManager = new BulletManager(scene, rapierWorld);
     const gunController = new Gun(bulletManager, camera);
 
-    // Player physics
     const playerDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 2.0, 0);
     const playerBody = rapierWorld.createRigidBody(playerDesc);
     playerBody.setEnabledRotations(false, true, false);
@@ -51,22 +50,26 @@ export async function initMainScene() {
     const groundCollider = RAPIER.ColliderDesc.cuboid(50, 0.5, 50).setFriction(0.01);
     rapierWorld.createCollider(groundCollider, groundBody);
 
-    document.body.appendChild(renderer.domElement);
-    scene.add(controls.object);
-
     const gun = await loadGunModel(camera);
     attachGun(gun);
+    await loadGLBModel(scene, rapierWorld);
 
     addEnvironment(scene);
-    loadGLBModel(scene);
 
-    // Flashlight
     const { flashlight, flashlightTarget } = createFlashlight();
     flashlight.visible = false;
     scene.add(flashlight, flashlightTarget);
 
+    scene.add(controls.object);
     setupInputHandlers(playerState);
     setupEvents(camera, renderer, controls);
+
+    document.body.appendChild(renderer.domElement);
+
+    // Return a startRendering function that begins the render loop when called
+    return function startRendering() {
+        animate();
+    };
 
     function animate() {
         requestAnimationFrame(animate);
@@ -83,7 +86,6 @@ export async function initMainScene() {
             const newPos = playerBody.translation();
             controls.object.position.set(newPos.x, newPos.y, newPos.z);
 
-            // Sync movement state to gun animation
             setGunMovementState({
                 moving: playerState.velocityTarget.lengthSq() > 0.001,
                 sprinting: playerState.keys.sprint
@@ -101,15 +103,13 @@ export async function initMainScene() {
         gunController.update(delta, controls);
         composer.render();
     }
-
-    animate();
 }
 
 function initCore() {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const canvas = document.getElementById('game-canvas');
-    const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+    const canvas = document.getElementById("game-canvas");
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     const controls = new PointerLockControls(camera, renderer.domElement);
 
     camera.position.y = 1.6;

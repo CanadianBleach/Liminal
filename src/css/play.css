@@ -56,11 +56,3 @@ body {
     transform: rotate(360deg);
   }
 }
-
-#game-container.hidden {
-  display: none;
-}
-
-#game-container.visible {
-  display: block;
-}
