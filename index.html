@@ -2,21 +2,98 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Three.js Project</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Liminal</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: black;
+        font-family: monospace;
+      }
+
+      #start-screen {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: black;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+      }
+
+      #start-screen button {
+        font-size: 18px;
+        padding: 10px 20px;
+        margin-top: 20px;
+        cursor: pointer;
+      }
+
+      #game-canvas {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+
+      #crosshair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 24px;
+        color: white;
+        z-index: 5;
+        pointer-events: none;
+        user-select: none;
+        opacity: 0.75;
+        font-family: monospace;
+        display: none;
+      }
+
+      /* 🔽 FADE OVERLAY */
+      #fade-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: black;
+        z-index: 20;
+        opacity: 1;
+        transition: opacity 1.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+      }
+
+      #fade-overlay.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
   </head>
-  <body id="fader">
-    <div id="web-load-fader" class="hidden">
-      <div id="start-screen">
-        <h1>LIMINAL</h1>
-        <button id="start-button" type="button">Enter the Void</button>
-        <div class="upload-wrapper">
-          <input type="file" id="enemy-input" accept="image/png,image/jpeg" class="hidden-file-input">
-          <button id="upload-button">Upload Enemy</button>
-        </div>
-      </div>
+  <body>
+    <!-- Main Menu -->
+    <div id="start-screen">
+      <h1>LIMINAL</h1>
+      <button id="start-button">Enter the Void</button>
     </div>
+
+    <!-- Game Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Crosshair -->
+    <div id="crosshair">+</div>
+
+    <!-- 🔽 FADE OVERLAY + LOADING -->
+    <div id="fade-overlay">Loading...</div>
+
+    <!-- Script -->
+    <script type="module" src="./src/index.js"></script>
   </body>
-  </body>
-  <script type="module" src="./src/index.js"></script>
 </html>

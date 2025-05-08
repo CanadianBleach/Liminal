@@ -1,56 +1,40 @@
-// UI Elements
-const startButton = document.getElementById("start-button");
-const fader = document.getElementById("fader");
-const webLoadFader = document.getElementById("web-load-fader");
-const uploadButton = document.getElementById('upload-button');
+import { initMainScene } from './scenes/mainScene.js';
 
-const fileInput = document.getElementById('enemy-input');
-console.log(fileInput); // Should NOT be null
+window.addEventListener('DOMContentLoaded', () => {
+  const startButton = document.getElementById("start-button");
+  const startScreen = document.getElementById("start-screen");
+  const gameCanvas = document.getElementById("game-canvas");
+  const crosshair = document.getElementById("crosshair");
+  const fadeOverlay = document.getElementById("fade-overlay");
 
-// Page load effect
-window.addEventListener('load', () => {
-    webLoadFader.classList = "visible";
-});
+  // Hide the fade screen initially until game is triggered
+  fadeOverlay.style.display = "none";
 
-// Start Game
-startButton.addEventListener("click", () => {
-    fader.classList = 'hidden';
-    setTimeout(() => {
-        window.location.href = '/play';
-    }, 1000);
-});
+  startButton.addEventListener("click", async () => {
+    // Show loading overlay
+    fadeOverlay.style.display = "flex";
 
-// Upload Button Behavior
-uploadButton.addEventListener('click', () => {
-    fileInput.click();
-});
+    // Hide menu
+    startScreen.style.display = "none";
 
-fileInput.addEventListener('change', () => {
-    const file = fileInput.files[0];
-    console.log('[DEBUG] File selected:', file);
+    // Show canvas + crosshair
+    gameCanvas.style.display = "block";
+    crosshair.style.display = "block";
 
-    if (!file) {
-        console.warn('[DEBUG] No file selected');
-        return;
-    }
+    // Wait a frame so fade is visible before loading
+    await new Promise(r => requestAnimationFrame(r));
 
-    const reader = new FileReader();
+    // Initialize game scene
+    await initMainScene(gameCanvas);
 
-    reader.onload = function (event) {
-        const imageDataUrl = event.target.result;
-        console.log('[DEBUG] Data URL:', imageDataUrl);
-        localStorage.setItem('enemyTexture', imageDataUrl);
-        uploadButton.textContent = `Selected: ${file.name}`;
-    };
+    await new Promise(r => setTimeout(r, 700)); // 2 seconds
 
-    reader.onerror = function (error) {
-        console.error('[ERROR] FileReader failed:', error);
-    };
+    // Fade out overlay
+    fadeOverlay.classList.add("fade-out");
 
-    try {
-        reader.readAsDataURL(file);
-        console.log('[DEBUG] Called readAsDataURL');
-    } catch (e) {
-        console.error('[EXCEPTION] Failed to read file:', e);
-    }
+    // Fully remove after transition
+    fadeOverlay.addEventListener("transitionend", () => {
+      fadeOverlay.style.display = "none";
+    });
+  });
 });

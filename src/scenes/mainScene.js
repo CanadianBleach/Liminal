@@ -25,8 +25,8 @@ import {
 } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
-export async function initMainScene() {
-    const { scene, camera, renderer, controls } = initCore();
+export async function initMainScene(canvas) {
+    const { scene, camera, renderer, controls } = initCore(canvas);
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
     const playerState = initPlayerState();
@@ -105,10 +105,10 @@ export async function initMainScene() {
     animate();
 }
 
-function initCore() {
+function initCore(canvas) {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); // use provided canvas
     const controls = new PointerLockControls(camera, renderer.domElement);
 
     camera.position.y = 1.6;
