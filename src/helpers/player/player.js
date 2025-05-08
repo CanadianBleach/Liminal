@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { toggleFlashlight } from './flashlight';
 
 const MOVE_SPEED = 4;
 const MOVEMENT_INTERPOLATION = 6;
@@ -36,6 +37,7 @@ export function setupInputHandlers(state) {
       case 'KeyS': state.keys.backward = true; break;
       case 'KeyA': state.keys.left = true; break;
       case 'KeyD': state.keys.right = true; break;
+      case 'KeyF': toggleFlashlight(); break;
       case 'ControlLeft': state.isCrouching = true; break;
       case 'ShiftLeft':
         if (state.sprintTime > 0 && state.sprintReleased) state.keys.sprint = true;
