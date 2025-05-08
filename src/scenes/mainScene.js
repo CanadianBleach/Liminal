@@ -102,9 +102,9 @@ export async function initMainScene() {
                 light.intensity = 60 + Math.random() * 60;
             }
         });
-        
+
         bulletManager.update(delta);
-        updateGunAnimation(delta);
+        updateGunAnimation(delta, camera);
         gunController.update(delta, controls);
         composer.render();
     }
@@ -157,14 +157,14 @@ function setupEvents(camera, renderer, controls, bulletManager) {
             camera.getWorldPosition(shootOrigin);
             camera.getWorldDirection(shootDir).normalize();
 
-// Offset the origin a bit forward along the direction
+            // Offset the origin a bit forward along the direction
             shootOrigin.add(shootDir.clone().multiplyScalar(0.5));
 
             bulletManager.shoot(shootOrigin, shootDir);
             triggerRecoil();
         }
-    });    
-    
+    });
+
 
     // Add flashlight toggle on right click
     document.addEventListener('pointerdown', (e) => {
