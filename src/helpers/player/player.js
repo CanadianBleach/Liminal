@@ -1,9 +1,9 @@
-// player.js
-
 import * as THREE from 'three';
+import { toggleFlashlight } from './flashlight';
 
-const MOVE_SPEED = 10.0;
-const JUMP_SPEED = 2.25;
+const MOVE_SPEED = 4;
+const MOVEMENT_INTERPOLATION = 6;
+const JUMP_SPEED = 7;
 const GRAVITY = 20;
 const MAX_JUMP_DURATION = 0.25;
 const STAND_HEIGHT = 1.6;
@@ -20,12 +20,13 @@ export function initPlayerState() {
     keys: { forward: false, backward: false, left: false, right: false, jump: false, sprint: false },
     isCrouching: false,
     velocity: new THREE.Vector3(),
+    velocityTarget: new THREE.Vector3(),
     direction: new THREE.Vector3(),
     canJump: true,
     isJumping: false,
     jumpStartTime: 0,
     sprintTime: MAX_SPRINT_DURATION,
-    sprintReleased: true
+    sprintReleased: true,
   };
 }
 
@@ -36,6 +37,7 @@ export function setupInputHandlers(state) {
       case 'KeyS': state.keys.backward = true; break;
       case 'KeyA': state.keys.left = true; break;
       case 'KeyD': state.keys.right = true; break;
+      case 'KeyF': toggleFlashlight(); break;
       case 'ControlLeft': state.isCrouching = true; break;
       case 'ShiftLeft':
         if (state.sprintTime > 0 && state.sprintReleased) state.keys.sprint = true;
@@ -69,25 +71,16 @@ export function setupInputHandlers(state) {
   document.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-export function updatePlayer(delta, state, controls, camera) {
-  const { keys, velocity, direction } = state;
+export function updatePlayerPhysics(delta, state, body, controls, rapierWorld, playerCollider) {
+  const { keys, direction } = state;
 
-  // Dampen horizontal velocity
-  velocity.x -= velocity.x * 10.0 * delta;
-  velocity.z -= velocity.z * 10.0 * delta;
-
-  // Movement direction
-  direction.set(
-    Number(keys.right) - Number(keys.left),
-    0,
-    Number(keys.forward) - Number(keys.backward)
-  ).normalize();
-
-  // Movement speed
+  // === Movement State: Sprinting, Crouching, Speed ===
   let speed = MOVE_SPEED;
   let isSprinting = false;
+  const currentVel = body.linvel();
+  const isAirborne = Math.abs(currentVel.y) > 0.1;
 
-  if (state.isCrouching) {
+  if (!isAirborne && state.isCrouching) {
     speed *= CROUCH_SPEED_MULTIPLIER;
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
   } else if (keys.sprint && state.sprintTime > 0) {
@@ -103,41 +96,69 @@ export function updatePlayer(delta, state, controls, camera) {
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
   }
 
-  // Apply movement
-  controls.moveRight(direction.x * speed * delta);
-  controls.moveForward(direction.z * speed * delta);
-
-  // Smooth FOV transition
+  // === Camera FOV Adjustment ===
+  const camera = controls.object;
   const targetFov = isSprinting ? SPRINT_FOV : BASE_FOV;
   camera.fov += (targetFov - camera.fov) * 10 * delta;
   camera.updateProjectionMatrix();
 
-  // Handle jumping
-  const now = performance.now() / 1000;
-  if (state.isJumping && keys.jump) {
-    const held = now - state.jumpStartTime;
-    if (held < MAX_JUMP_DURATION) {
-      velocity.y = JUMP_SPEED;
-    } else {
-      state.isJumping = false;
-    }
+  // === Movement Direction Based on Camera ===
+  direction.set(
+    Number(keys.right) - Number(keys.left),
+    0,
+    Number(keys.forward) - Number(keys.backward)
+  );
+
+  if (direction.lengthSq() > 0) {
+    direction.normalize();
+
+    const camDir = new THREE.Vector3();
+    controls.getDirection(camDir);
+    camDir.y = 0;
+    camDir.normalize();
+
+    const right = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0, 1, 0)).normalize();
+
+    const worldMove = new THREE.Vector3();
+    worldMove.addScaledVector(camDir, direction.z);
+    worldMove.addScaledVector(right, direction.x);
+    direction.copy(worldMove.normalize());
   }
 
-  // Apply gravity
-  velocity.y -= GRAVITY * delta;
-  camera.position.y += velocity.y * delta;
+  const moveTarget = direction.clone().multiplyScalar(speed);
 
-  // Handle ground and crouch height
-  const groundHeight = state.isCrouching ? CROUCH_HEIGHT : STAND_HEIGHT;
-  if (camera.position.y <= groundHeight) {
-    camera.position.y = groundHeight;
-    velocity.y = 0;
+  // === Easing Horizontal Movement ===
+  const isIdle = moveTarget.lengthSq() === 0;
+  if (!isIdle) {
+    state.velocityTarget.lerp(moveTarget, MOVEMENT_INTERPOLATION * delta);
+  } else {
+    state.velocityTarget.set(0, 0, 0);
+  }
+
+  // === Simple Ground Detection via Vertical Velocity
+  const grounded = Math.abs(currentVel.y) < 0.05;
+  if (grounded) {
     state.canJump = true;
-    state.isJumping = false;
   }
 
-  const heightDiff = groundHeight - camera.position.y;
-  if (Math.abs(heightDiff) > 0.001 && velocity.y === 0) {
-    camera.position.y += heightDiff * 10 * delta;
+  // === Gravity + Jump ===
+  let newY = currentVel.y;
+
+  if (state.isJumping && state.canJump) {
+    newY = JUMP_SPEED;
+    state.canJump = false;
+    state.isJumping = false; // reset jump flag AFTER applying it
   }
+
+  // === Apply Final Velocity ===
+  // Apply gravity manually
+  newY -= GRAVITY * delta;
+
+  const velocity = new THREE.Vector3(
+    state.velocityTarget.x,
+    newY,
+    state.velocityTarget.z
+  );
+
+  body.setLinvel(velocity, true);
 }
