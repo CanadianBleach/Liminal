@@ -144,10 +144,6 @@ function setupEvents(camera, renderer, controls) {
         }
     });
 
-    document.addEventListener('pointerdown', (e) => {
-        if (e.button === 2) toggleFlashlight();
-    });
-
     document.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
