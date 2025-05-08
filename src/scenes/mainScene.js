@@ -1,3 +1,5 @@
+// Refactored mainScene.js with gun animation and movement state syncing
+
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
@@ -13,16 +15,14 @@ import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
 import BulletManager from '../combat/bulletManager.js';
 import { loadGunModel } from '../helpers/player/gunModel.js';
-import { attachGun, triggerRecoil, updateGunAnimation } from '../helpers/player/gunAnimation.js';
+import { attachGun, triggerRecoil, updateGunAnimation, setGunMovementState } from '../helpers/player/gunAnimation.js';
 import Gun from '../combat/gun.js';
-
 import {
     createFlashlight,
     updateFlashlightBattery,
     updateFlashlight,
     toggleFlashlight
 } from '../helpers/player/flashlight.js';
-
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
 export async function initMainScene() {
@@ -33,29 +33,22 @@ export async function initMainScene() {
     const enemyManager = new EnemyManager(scene, camera);
 
     await RAPIER.init();
-
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
     const bulletManager = new BulletManager(scene, rapierWorld);
     const gunController = new Gun(bulletManager, camera);
 
-    // Create player rigid body and collider
-    const playerDesc = RAPIER.RigidBodyDesc.dynamic()
-        .setTranslation(0, 2.0, 0); // Starting position
-
+    // Player physics
+    const playerDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 2.0, 0);
     const playerBody = rapierWorld.createRigidBody(playerDesc);
-    playerBody.setEnabledRotations(false, true, false); // Lock X and Z rotation
+    playerBody.setEnabledRotations(false, true, false);
     playerBody.setAngularDamping(1.0);
 
-    // 👉 Place this right after the body is created:
-    const playerColliderDesc = RAPIER.ColliderDesc.capsule(0.35, 0.8)
-        .setFriction(0.0);
+    const playerColliderDesc = RAPIER.ColliderDesc.capsule(0.35, 0.8).setFriction(0.0);
     const playerCollider = rapierWorld.createCollider(playerColliderDesc, playerBody);
 
-    // Create static ground collider
-    const groundDesc = RAPIER.RigidBodyDesc.fixed()
-        .setTranslation(0, 0, 0);
+    const groundDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0, 0);
     const groundBody = rapierWorld.createRigidBody(groundDesc);
-    const groundCollider = RAPIER.ColliderDesc.cuboid(50, 0.5, 50).setFriction(.01);
+    const groundCollider = RAPIER.ColliderDesc.cuboid(50, 0.5, 50).setFriction(0.01);
     rapierWorld.createCollider(groundCollider, groundBody);
 
     document.body.appendChild(renderer.domElement);
@@ -67,25 +60,20 @@ export async function initMainScene() {
     addEnvironment(scene);
     loadGLBModel(scene);
 
-    // Flashlight setup
+    // Flashlight
     const { flashlight, flashlightTarget } = createFlashlight();
     flashlight.visible = false;
     scene.add(flashlight, flashlightTarget);
 
-    // Input setup
     setupInputHandlers(playerState);
+    setupEvents(camera, renderer, controls);
 
-    // Resize & pointer lock
-    setupEvents(camera, renderer, controls, bulletManager);
-
-    // Main render loop
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
 
         updateFlashlightBattery(delta);
         updateFlashlight(camera, flashlight, flashlightTarget);
-
         enemyManager.update(delta);
 
         if (controls.isLocked) {
@@ -94,9 +82,14 @@ export async function initMainScene() {
 
             const newPos = playerBody.translation();
             controls.object.position.set(newPos.x, newPos.y, newPos.z);
+
+            // Sync movement state to gun animation
+            setGunMovementState({
+                moving: playerState.velocityTarget.lengthSq() > 0.001,
+                sprinting: playerState.keys.sprint
+            });
         }
 
-        // Flicker lights slightly
         flickeringLights.forEach(light => {
             if (Math.random() < 0.1) {
                 light.intensity = 60 + Math.random() * 60;
@@ -111,8 +104,6 @@ export async function initMainScene() {
 
     animate();
 }
-
-// -- Core Setup Functions --
 
 function initCore() {
     const scene = new THREE.Scene();
@@ -140,7 +131,7 @@ function setupPostProcessingEffects(renderer, scene, camera) {
     return composer;
 }
 
-function setupEvents(camera, renderer, controls, bulletManager) {
+function setupEvents(camera, renderer, controls) {
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -150,38 +141,20 @@ function setupEvents(camera, renderer, controls, bulletManager) {
     document.body.addEventListener('click', () => {
         if (!controls.isLocked) {
             controls.lock();
-        } else {
-            const shootOrigin = new THREE.Vector3();
-            const shootDir = new THREE.Vector3();
-
-            camera.getWorldPosition(shootOrigin);
-            camera.getWorldDirection(shootDir).normalize();
-
-            // Offset the origin a bit forward along the direction
-            shootOrigin.add(shootDir.clone().multiplyScalar(0.5));
-
-            bulletManager.shoot(shootOrigin, shootDir);
-            triggerRecoil();
         }
     });
 
-
-    // Add flashlight toggle on right click
     document.addEventListener('pointerdown', (e) => {
-        if (e.button === 2) {
-            toggleFlashlight();
-        }
+        if (e.button === 2) toggleFlashlight();
     });
 
-    document.addEventListener('contextmenu', (e) => e.preventDefault()); // prevent browser menu
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
 function addEnvironment(scene) {
     scene.add(initGround());
     initLighting(scene);
 }
-
-// --- SCENE HELPERS ---
 
 function initGround() {
     const canvas = document.createElement('canvas');
