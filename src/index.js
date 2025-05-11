@@ -5,6 +5,7 @@ const webLoadFader = document.getElementById("web-load-fader");
 const uploadButton = document.getElementById('upload-button');
 
 const fileInput = document.getElementById('enemy-input');
+const clearButton = document.getElementById('clear-image-button');
 console.log(fileInput); // Should NOT be null
 
 // Page load effect
@@ -18,6 +19,10 @@ startButton.addEventListener("click", () => {
     setTimeout(() => {
         window.location.href = '/play';
     }, 1000);
+});
+
+startButton.addEventListener("click", () => {
+    localStorage.clear();
 });
 
 // Upload Button Behavior

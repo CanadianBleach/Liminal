@@ -9,10 +9,9 @@ export class Enemy {
 
     this.moveSpeed = 2.0;
     this.minDistanceToPlayer = 2.5;
+    this.textureUrl = textureUrl;
 
-    if (textureUrl) {
-      this.loadTexture(textureUrl);
-    }
+    this.loadTexture(textureUrl);
   }
 
   createMesh(position) {
@@ -28,9 +27,8 @@ export class Enemy {
     return mesh;
   }
 
-  loadTexture(url) {
-    // setup enemy texture
-    const imageDataUrl = localStorage.getItem('enemyTexture');
+  loadTexture(textureUrl) { 
+    const imageDataUrl = textureUrl ? textureUrl : this.textureUrl;
 
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
@@ -44,6 +42,7 @@ export class Enemy {
           alphaTest: 0.5,
         });
         this.mesh.material.dispose();
+        this.mesh.castShadow = true;
         this.mesh.material = material;
 
         const img = texture.image;
@@ -51,6 +50,8 @@ export class Enemy {
           const aspect = img.width / img.height;
           this.mesh.scale.x = aspect;
         }
+
+        return true;
       },
       undefined,
       (err) => {
