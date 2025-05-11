@@ -24,6 +24,7 @@ import {
     toggleFlashlight
 } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
+import { buildStaticCollidersFromGLTF } from '../loaders/buildStaticColliders.js';
 
 export async function initMainScene() {
     const { scene, camera, renderer, controls } = initCore();

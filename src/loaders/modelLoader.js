@@ -1,9 +1,10 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
+import { buildStaticCollidersFromGLTF } from '../loaders/buildStaticColliders.js';
 
 export const flickeringLights = [];
 
-export function loadGLBModel(scene) {
+export function loadGLBModel(scene, rapierWorld) {
   const loader = new GLTFLoader();
 
   loader.load('./models/backroom_lit.glb', (gltf) => {
@@ -43,5 +44,6 @@ export function loadGLBModel(scene) {
     });
 
     scene.add(model);
+    buildStaticCollidersFromGLTF(gltf, rapierWorld);
   });
 }
