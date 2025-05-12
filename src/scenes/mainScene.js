@@ -100,6 +100,31 @@ export async function initMainScene() {
 
         bulletManager.update(delta);
         updateGunAnimation(delta, camera);
+        for (const bullet of bulletManager.bullets) {
+            for (const enemy of enemyManager.enemies) {
+                if (!enemy.alive) continue;
+
+                const bulletPos = bullet.getPosition();
+                const enemyPos = enemy.mesh.position;
+                const distance = bulletPos.distanceTo(enemyPos);
+            
+                if (distance < 0.6 && !bullet.hitEnemies.has(enemy)) {
+                    bullet.hitEnemies.add(enemy);
+                    if (enemy.alive) {
+                      enemy.takeDamage(10);
+                      if (!enemy.alive) {
+                        enemyManager.killCount++;
+                        const killsDisplay = document.getElementById('kills');
+                        if (killsDisplay) {
+                          killsDisplay.textContent = enemyManager.killCount;
+                        }
+                      }
+                      bullet.markedForRemoval = true;
+                    }
+                  }
+            }
+          }
+          
         gunController.update(delta, controls);
         composer.render();
     }

@@ -12,8 +12,24 @@ export class Enemy {
     this.textureUrl = textureUrl;
 
     this.loadTexture(textureUrl);
+    this.health = 100;
+    this.alive = true;
   }
-
+  takeDamage(amount) {
+    if (!this.alive) return;
+  
+    this.health -= amount;
+    console.log(`Enemy took ${amount} damage, health: ${this.health}`);
+  
+    if (this.health <= 0) {
+      this.alive = false;
+      this.scene.remove(this.mesh);
+      this.mesh.geometry.dispose();
+      this.mesh.material.dispose();
+      console.log('%cEnemy died', 'color: red;');
+    }
+  }
+  
   createMesh(position) {
     const geometry = new THREE.PlaneGeometry(1, 2);
     const material = new THREE.MeshBasicMaterial({

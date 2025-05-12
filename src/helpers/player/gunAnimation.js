@@ -52,8 +52,8 @@ export function updateGunAnimation(delta, camera) {
 
   // --- Final gun transform ---
   gunMesh.position.set(
-    0.3 + swayOffset.x + bobOffsetX,
-    -0.4 + bobOffsetY,
+    0 + swayOffset.x + bobOffsetX,
+    -0.15 + bobOffsetY,
     0.2 + recoilOffset
   );
 }

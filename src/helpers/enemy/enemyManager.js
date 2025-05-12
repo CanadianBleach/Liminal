@@ -12,6 +12,7 @@ export class EnemyManager {
     this.spawnInterval = 8;
     this.spawnTimer = 0;
     this.timeElapsed = 0;
+    this.killCount = 0;
 
     this.spawnRateMin = 1.5;
     this.spawnRateDecay = 0.95;

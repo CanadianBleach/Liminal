@@ -6,7 +6,9 @@ export default class Bullet {
     this.speed = 50;
     this.lifetime = 2; // seconds
     this.spawnTime = performance.now() / 1000;
+    this.hitEnemies = new Set();
 
+    
     // Create dynamic rigid body
     const desc = RAPIER.RigidBodyDesc.dynamic().setTranslation(position.x, position.y, position.z);
     this.body = rapierWorld.createRigidBody(desc);
@@ -42,4 +44,10 @@ console.log('Velocity set:', velocity.toArray());
 
     return true; // active
   }
+
+  getPosition() {
+    const pos = this.body.translation();
+    return new THREE.Vector3(pos.x, pos.y, pos.z);
+  }
+  
 } 

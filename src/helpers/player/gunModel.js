@@ -9,7 +9,7 @@ export async function loadGunModel(camera) {
 
       // Scale and position gun in front of camera
       gun.scale.set(.5, .5, .5); // adjust to taste
-      gun.position.set(0, -0.1, -2); // right, down, forward
+      gun.position.set(0, 1, -2); // right, down, forward
       gun.rotation.set(0, 0, 0); // face the right way
 
       // Attach to camera
