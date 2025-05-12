@@ -4,7 +4,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 
 const MOVE_SPEED = 4;
 const MOVEMENT_INTERPOLATION = 6;
-const JUMP_SPEED = 7;
+const JUMP_SPEED = 8;
 const GRAVITY = 9.81;
 const STAND_HEIGHT = 1.6;
 const CROUCH_HEIGHT = 1.0;
@@ -17,6 +17,7 @@ const SPRINT_FOV = 105;
 const DOLPHIN_DIVE_FORCE = 100;
 const DOLPHIN_DIVE_UPWARD = 5;
 const DOLPHIN_DIVE_COOLDOWN_TIME = 5;
+const DOLPHIN_DIVE_WINDOW = 3;
 const DIVE_TILT_AMOUNT = .2;
 
 export function initPlayerState() {
@@ -30,6 +31,8 @@ export function initPlayerState() {
     isJumping: false,
     jumpStartTime: 0,
     sprintTime: MAX_SPRINT_DURATION,
+    wasSprinting: false,
+    lastSprintTime: 0,
     sprintReleased: true,
     dolphinDiveActive: false,
     dolphinDiveCooldown: 0,
@@ -48,12 +51,17 @@ export function setupInputHandlers(state) {
       case 'KeyD': state.keys.right = true; break;
       case 'KeyF': toggleFlashlight(); break;
       case 'ControlLeft':
+
         state.isCrouching = true;
         const now = performance.now() / 1000;
+        const recentlySprinted = (now - state.lastSprintTime) < DOLPHIN_DIVE_WINDOW;
+        const recentlyJumped = (now - state.lastJumpTime) < DOLPHIN_DIVE_WINDOW;
+
         if (
-          (now - state.lastJumpTime) < 0.3 &&
+          recentlyJumped &&
+          recentlySprinted &&
           state.dolphinDiveCooldown <= 0 &&
-          state.keys.forward
+          state.direction.z > 0.1
         ) {
           state.dolphinDiveTriggered = true;
         }
@@ -94,6 +102,10 @@ export function setupInputHandlers(state) {
 export function updatePlayerPhysics(delta, state, body, controls, tiltContainer, playerCollider) {
   const currentVel = body.linvel();
   const isAirborne = Math.abs(currentVel.y) > 0.1;
+
+  if (state.dolphinDiveCooldown > 0) {
+    state.dolphinDiveCooldown = Math.max(0, state.dolphinDiveCooldown - delta);
+  }
 
   const cameraWrapper = controls.object;
   let camera;
@@ -165,19 +177,31 @@ function updateDiveCameraFX(cameraWrapper, state, delta) {
 }
 
 function handleSprintCrouch(delta, state, isAirborne) {
+  const now = performance.now() / 1000;
+
+  const isSprinting = state.keys.sprint && state.sprintTime > 0;
+
   if (!isAirborne && state.isCrouching) {
+    // Recharge sprint while crouching and grounded
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
-  } else if (state.keys.sprint && state.sprintTime > 0) {
+  } else if (isSprinting) {
+    // Active sprinting
     state.sprintTime -= delta;
+    state.wasSprinting = true;
+    state.lastSprintTime = now;
+
     if (state.sprintTime <= 0) {
       state.sprintTime = 0;
       state.keys.sprint = false;
       state.sprintReleased = false;
     }
   } else {
+    // Passive recharge when not sprinting
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
+    state.wasSprinting = false;
   }
 }
+
 
 function updateMovementDirection(state, controls) {
   const { keys, direction } = state;
@@ -253,6 +277,7 @@ function updateDolphinDive(delta, state) {
 
     if (horizontalSpeedSq < 0.15) {
       state.dolphinDiveActive = false;
+      state.dolphinDiveVelocity.set(0, 0, 0);
     }
   }
 }
