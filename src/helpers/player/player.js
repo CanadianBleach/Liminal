@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
+import RAPIER from '@dimforge/rapier3d-compat';
 
 const MOVE_SPEED = 4;
 const MOVEMENT_INTERPOLATION = 6;
 const JUMP_SPEED = 7;
-const GRAVITY = 20;
-const MAX_JUMP_DURATION = 0.25;
+const GRAVITY = 9.81;
 const STAND_HEIGHT = 1.6;
 const CROUCH_HEIGHT = 1.0;
 const CROUCH_SPEED_MULTIPLIER = 0.4;
@@ -14,6 +14,10 @@ const MAX_SPRINT_DURATION = 5.0;
 const SPRINT_RECHARGE_RATE = 0.5;
 const BASE_FOV = 80;
 const SPRINT_FOV = 105;
+const DOLPHIN_DIVE_FORCE = 100;
+const DOLPHIN_DIVE_UPWARD = 5;
+const DOLPHIN_DIVE_COOLDOWN_TIME = 5;
+const DIVE_TILT_AMOUNT = .2;
 
 export function initPlayerState() {
   return {
@@ -27,6 +31,11 @@ export function initPlayerState() {
     jumpStartTime: 0,
     sprintTime: MAX_SPRINT_DURATION,
     sprintReleased: true,
+    dolphinDiveActive: false,
+    dolphinDiveCooldown: 0,
+    dolphinDiveTriggered: false,
+    dolphinDiveVelocity: new THREE.Vector3(),
+    lastJumpTime: 0,
   };
 }
 
@@ -38,7 +47,17 @@ export function setupInputHandlers(state) {
       case 'KeyA': state.keys.left = true; break;
       case 'KeyD': state.keys.right = true; break;
       case 'KeyF': toggleFlashlight(); break;
-      case 'ControlLeft': state.isCrouching = true; break;
+      case 'ControlLeft':
+        state.isCrouching = true;
+        const now = performance.now() / 1000;
+        if (
+          (now - state.lastJumpTime) < 0.3 &&
+          state.dolphinDiveCooldown <= 0 &&
+          state.keys.forward
+        ) {
+          state.dolphinDiveTriggered = true;
+        }
+        break;
       case 'ShiftLeft':
         if (state.sprintTime > 0 && state.sprintReleased) state.keys.sprint = true;
         break;
@@ -46,6 +65,7 @@ export function setupInputHandlers(state) {
         if (state.canJump && !state.keys.jump) {
           state.keys.jump = true;
           state.jumpStartTime = performance.now() / 1000;
+          state.lastJumpTime = performance.now() / 1000;
           state.isJumping = true;
           state.canJump = false;
         }
@@ -71,38 +91,96 @@ export function setupInputHandlers(state) {
   document.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-export function updatePlayerPhysics(delta, state, body, controls, rapierWorld, playerCollider) {
-  const { keys, direction } = state;
-
-  // === Movement State: Sprinting, Crouching, Speed ===
-  let speed = MOVE_SPEED;
-  let isSprinting = false;
+export function updatePlayerPhysics(delta, state, body, controls, tiltContainer, playerCollider) {
   const currentVel = body.linvel();
   const isAirborne = Math.abs(currentVel.y) > 0.1;
 
+  const cameraWrapper = controls.object;
+  let camera;
+  cameraWrapper.traverse(obj => {
+    if (obj instanceof THREE.PerspectiveCamera) {
+      camera = obj;
+    }
+  });
+  if (!camera) {
+    console.warn("PerspectiveCamera not found in wrapper!");
+    return;
+  }
+
+  updateFOV(camera, state, delta);
+  updateDiveCameraFX(tiltContainer, state, delta);
+  handleSprintCrouch(delta, state, isAirborne);
+  updateMovementDirection(state, controls);
+  updateMovementVelocity(delta, state);
+
+  const grounded = Math.abs(currentVel.y) < 0.05;
+  if (grounded) {
+    state.canJump = true;
+    handleDolphinDiveTrigger(state, controls, playerCollider);
+  }
+
+  updateDolphinDive(delta, state);
+
+  let newY = currentVel.y;
+  if (state.isJumping && state.canJump) {
+    newY = JUMP_SPEED;
+    state.canJump = false;
+    state.isJumping = false;
+  }
+  newY -= GRAVITY * delta;
+
+  const finalVelocity = new THREE.Vector3(
+    state.velocityTarget.x,
+    newY,
+    state.velocityTarget.z
+  );
+  body.setLinvel(finalVelocity, true);
+  const newPos = body.translation();
+  controls.object.position.set(newPos.x, newPos.y, newPos.z);
+
+}
+
+function updateFOV(camera, state, delta) {
+  const targetFov = state.keys.sprint ? SPRINT_FOV : BASE_FOV;
+  camera.fov += (targetFov - camera.fov) * 10 * delta;
+  camera.updateProjectionMatrix();
+}
+
+function updateDiveCameraFX(cameraWrapper, state, delta) {
+  const t = performance.now() * 0.005;
+
+  const targetTiltX = state.dolphinDiveActive
+    ? -DIVE_TILT_AMOUNT + Math.sin(t * 2.2) * 0.5 * DIVE_TILT_AMOUNT
+    : 0;
+
+  const targetTiltZ = state.dolphinDiveActive
+    ? Math.sin(t) * 0.15 * DIVE_TILT_AMOUNT
+    : 0;
+
+  cameraWrapper.rotation.x += (targetTiltX - cameraWrapper.rotation.x) * 10 * delta;
+  cameraWrapper.rotation.z += (targetTiltZ - cameraWrapper.rotation.z) * 10 * delta;
+
+  cameraWrapper.rotation.x = THREE.MathUtils.clamp(cameraWrapper.rotation.x, -Math.PI / 4, Math.PI / 4);
+  cameraWrapper.rotation.z = THREE.MathUtils.clamp(cameraWrapper.rotation.z, -Math.PI / 4, Math.PI / 4);
+}
+
+function handleSprintCrouch(delta, state, isAirborne) {
   if (!isAirborne && state.isCrouching) {
-    speed *= CROUCH_SPEED_MULTIPLIER;
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
-  } else if (keys.sprint && state.sprintTime > 0) {
-    isSprinting = true;
-    speed *= SPRINT_SPEED_MULTIPLIER;
+  } else if (state.keys.sprint && state.sprintTime > 0) {
     state.sprintTime -= delta;
     if (state.sprintTime <= 0) {
       state.sprintTime = 0;
-      keys.sprint = false;
+      state.keys.sprint = false;
       state.sprintReleased = false;
     }
   } else {
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
   }
+}
 
-  // === Camera FOV Adjustment ===
-  const camera = controls.object;
-  const targetFov = isSprinting ? SPRINT_FOV : BASE_FOV;
-  camera.fov += (targetFov - camera.fov) * 10 * delta;
-  camera.updateProjectionMatrix();
-
-  // === Movement Direction Based on Camera ===
+function updateMovementDirection(state, controls) {
+  const { keys, direction } = state;
   direction.set(
     Number(keys.right) - Number(keys.left),
     0,
@@ -111,54 +189,70 @@ export function updatePlayerPhysics(delta, state, body, controls, rapierWorld, p
 
   if (direction.lengthSq() > 0) {
     direction.normalize();
-
     const camDir = new THREE.Vector3();
     controls.getDirection(camDir);
     camDir.y = 0;
     camDir.normalize();
 
     const right = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0, 1, 0)).normalize();
-
     const worldMove = new THREE.Vector3();
     worldMove.addScaledVector(camDir, direction.z);
     worldMove.addScaledVector(right, direction.x);
     direction.copy(worldMove.normalize());
   }
+}
 
-  const moveTarget = direction.clone().multiplyScalar(speed);
-
-  // === Easing Horizontal Movement ===
-  const isIdle = moveTarget.lengthSq() === 0;
-  if (!isIdle) {
+function updateMovementVelocity(delta, state) {
+  const speedMult = state.isCrouching ? CROUCH_SPEED_MULTIPLIER : (state.keys.sprint ? SPRINT_SPEED_MULTIPLIER : 1);
+  const moveTarget = state.direction.clone().multiplyScalar(MOVE_SPEED * speedMult);
+  if (moveTarget.lengthSq() > 0) {
     state.velocityTarget.lerp(moveTarget, MOVEMENT_INTERPOLATION * delta);
   } else {
     state.velocityTarget.set(0, 0, 0);
   }
+}
 
-  // === Simple Ground Detection via Vertical Velocity
-  const grounded = Math.abs(currentVel.y) < 0.05;
-  if (grounded) {
-    state.canJump = true;
+function handleDolphinDiveTrigger(state, controls, playerCollider) {
+  if (!state.dolphinDiveTriggered && state.dolphinDiveCooldown > 0) {
+    state.dolphinDiveCooldown = Math.max(0, state.dolphinDiveCooldown - 0.016);
   }
 
-  // === Gravity + Jump ===
-  let newY = currentVel.y;
+  if (state.dolphinDiveTriggered && state.dolphinDiveCooldown <= 0) {
+    const camDir = new THREE.Vector3();
+    controls.getDirection(camDir);
+    camDir.y = 0;
+    camDir.normalize();
 
-  if (state.isJumping && state.canJump) {
-    newY = JUMP_SPEED;
-    state.canJump = false;
-    state.isJumping = false; // reset jump flag AFTER applying it
+    state.dolphinDiveVelocity.copy(camDir).multiplyScalar(DOLPHIN_DIVE_FORCE);
+    state.dolphinDiveVelocity.y = DOLPHIN_DIVE_UPWARD;
+
+    state.dolphinDiveActive = true;
+    state.dolphinDiveTriggered = false;
+    state.dolphinDiveCooldown = DOLPHIN_DIVE_COOLDOWN_TIME;
+
+    playerCollider.setHalfHeight(CROUCH_HEIGHT / 2);
+    controls.object.position.y = CROUCH_HEIGHT;
+  } else if (!state.dolphinDiveActive && state.dolphinDiveCooldown <= 0) {
+    playerCollider.setHalfHeight(STAND_HEIGHT / 2);
+    controls.object.position.y = STAND_HEIGHT;
   }
+}
 
-  // === Apply Final Velocity ===
-  // Apply gravity manually
-  newY -= GRAVITY * delta;
+function updateDolphinDive(delta, state) {
+  if (state.dolphinDiveActive) {
+    state.dolphinDiveVelocity.x *= 0.96;
+    state.dolphinDiveVelocity.z *= 0.96;
 
-  const velocity = new THREE.Vector3(
-    state.velocityTarget.x,
-    newY,
-    state.velocityTarget.z
-  );
+    state.velocityTarget.add(
+      new THREE.Vector3(state.dolphinDiveVelocity.x, 0, state.dolphinDiveVelocity.z).multiplyScalar(delta)
+    );
 
-  body.setLinvel(velocity, true);
+    const horizontalSpeedSq =
+      state.dolphinDiveVelocity.x * state.dolphinDiveVelocity.x +
+      state.dolphinDiveVelocity.z * state.dolphinDiveVelocity.z;
+
+    if (horizontalSpeedSq < 0.15) {
+      state.dolphinDiveActive = false;
+    }
+  }
 }

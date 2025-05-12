@@ -76,18 +76,25 @@ export function updateFlashlightBattery(delta) {
 }
 
 export function updateFlashlight(camera, flashlight, target) {
+  const cameraWorldPos = new THREE.Vector3();
+  const cameraWorldDir = new THREE.Vector3();
+  const offset = new THREE.Vector3();
   const right = new THREE.Vector3();
-  camera.getWorldDirection(right);
-  right.cross(camera.up).normalize();
 
-  const offset = right.multiplyScalar(0.3).add(new THREE.Vector3(0, -0.25, 0));
-  flashlight.position.lerp(camera.position.clone().add(offset), 0.15);
+  // Get camera world position and direction
+  camera.getWorldPosition(cameraWorldPos);
+  camera.getWorldDirection(cameraWorldDir);
 
-  const lookDir = new THREE.Vector3();
-  camera.getWorldDirection(lookDir);
-  const targetPos = camera.position.clone().add(lookDir.multiplyScalar(10));
+  // Calculate offset: right side of camera, slightly down
+  right.crossVectors(cameraWorldDir, camera.up).normalize();
+  offset.copy(right).multiplyScalar(0.3).add(new THREE.Vector3(0, -0.25, 0));
+
+  // Apply offset and smooth interpolation
+  const targetPos = cameraWorldPos.clone().add(cameraWorldDir.clone().multiplyScalar(10));
+  flashlight.position.lerp(cameraWorldPos.clone().add(offset), 0.15);
   target.position.lerp(targetPos, 0.15);
   target.updateMatrixWorld();
 
   flashlight.lookAt(target.position);
 }
+

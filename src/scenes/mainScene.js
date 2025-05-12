@@ -15,19 +15,17 @@ import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
 import BulletManager from '../combat/bulletManager.js';
 import { loadGunModel } from '../helpers/player/gunModel.js';
-import { attachGun, triggerRecoil, updateGunAnimation, setGunMovementState } from '../helpers/player/gunAnimation.js';
+import { attachGun, updateGunAnimation, setGunMovementState } from '../helpers/player/gunAnimation.js';
 import Gun from '../combat/gun.js';
 import {
     createFlashlight,
     updateFlashlightBattery,
     updateFlashlight,
-    toggleFlashlight
 } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
-import { buildStaticCollidersFromGLTF } from '../loaders/buildStaticColliders.js';
 
 export async function initMainScene() {
-    const { scene, camera, renderer, controls } = initCore();
+    const { scene, camera, renderer, controls, tiltContainer } = initCore();
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
     const playerState = initPlayerState();
@@ -39,16 +37,17 @@ export async function initMainScene() {
     const gunController = new Gun(bulletManager, camera);
 
     const playerDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 2.0, 0);
+    playerDesc.canSleep = false;
     const playerBody = rapierWorld.createRigidBody(playerDesc);
     playerBody.setEnabledRotations(false, true, false);
     playerBody.setAngularDamping(1.0);
 
-    const playerColliderDesc = RAPIER.ColliderDesc.capsule(0.35, 0.8).setFriction(0.0);
+    const playerColliderDesc = RAPIER.ColliderDesc.capsule(0.35, 0.8).setFriction(0.0).setDensity(1.0);
     const playerCollider = rapierWorld.createCollider(playerColliderDesc, playerBody);
 
     const groundDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0, 0);
     const groundBody = rapierWorld.createRigidBody(groundDesc);
-    const groundCollider = RAPIER.ColliderDesc.cuboid(50, 0.5, 50).setFriction(0.01);
+    const groundCollider = RAPIER.ColliderDesc.cuboid(50, 0.5, 50).setFriction(0.00);
     rapierWorld.createCollider(groundCollider, groundBody);
 
     const gun = await loadGunModel(camera);
@@ -81,7 +80,7 @@ export async function initMainScene() {
         enemyManager.update(delta);
 
         if (controls.isLocked) {
-            updatePlayerPhysics(delta, playerState, playerBody, controls, rapierWorld, playerCollider);
+            updatePlayerPhysics(delta, playerState, playerBody, controls, tiltContainer, playerCollider);
             rapierWorld.step();
 
             const newPos = playerBody.translation();
@@ -108,17 +107,25 @@ export async function initMainScene() {
 
 function initCore() {
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+
     const canvas = document.getElementById("game-canvas");
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    const controls = new PointerLockControls(camera, renderer.domElement);
 
-    camera.position.y = 1.6;
+    const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const tiltContainer = new THREE.Object3D();
+    tiltContainer.add(camera);
+
+    const cameraWrapper = new THREE.Object3D();
+    cameraWrapper.add(tiltContainer);
+
+    scene.add(cameraWrapper);
+    const controls = new PointerLockControls(cameraWrapper, renderer.domElement);
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    return { scene, camera, renderer, controls };
+    return { scene, camera, cameraWrapper, renderer, controls, tiltContainer };
 }
 
 function setupPostProcessingEffects(renderer, scene, camera) {
