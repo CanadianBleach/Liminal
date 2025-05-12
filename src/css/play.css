@@ -56,3 +56,99 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* === UI OVERLAY === */
+#game-ui {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+#game-ui.visible {
+  opacity: 1;
+}
+
+/* === CROSSHAIR === */
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.line {
+  position: absolute;
+  background-color: white;
+  width: 2px;
+  height: 12px;
+  opacity: 0.75;
+  transition: transform 0.1s ease-out, background-color 0.1s, box-shadow 0.1s;
+}
+
+.top {
+  top: -16px;
+  transform: translateY(0);
+}
+
+.bottom {
+  bottom: -16px;
+  transform: translateY(0);
+}
+
+.left {
+  left: -16px;
+  width: 12px;
+  height: 2px;
+  transform: translateX(0);
+}
+
+.right {
+  right: -16px;
+  width: 12px;
+  height: 2px;
+  transform: translateX(0);
+}
+
+/* === SPREAD EFFECT === */
+.crosshair-spread .top    { transform: translateY(-6px); }
+.crosshair-spread .bottom { transform: translateY(6px); }
+.crosshair-spread .left   { transform: translateX(-6px); }
+.crosshair-spread .right  { transform: translateX(6px); }
+
+/* === FLASH EFFECT === */
+.line.crosshair-flash {
+  animation: crosshairFlashSingle 0.15s ease-out;
+}
+
+@keyframes crosshairFlashSingle {
+  0%   { background-color: white; box-shadow: none; }
+  25%  { background-color: orange; box-shadow: 0 0 6px orange; }
+  50%  { background-color: yellow; box-shadow: 0 0 8px yellow; }
+  75%  { background-color: red; box-shadow: 0 0 6px red; }
+  100% { background-color: white; box-shadow: none; }
+}
+
+/* === HUD (optional, can be used later) === */
+#hud {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: white;
+  font-family: monospace;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.hud-item {
+  margin-bottom: 4px;
+}

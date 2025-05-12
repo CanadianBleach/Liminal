@@ -39,9 +39,39 @@ class Gun {
       this.bulletManager.shoot(shootOrigin, shootDir);
       triggerRecoil();
   
+      // === Crosshair UI Effects ===
+      const crosshair = document.getElementById("crosshair");
+      const lines = document.querySelectorAll("#crosshair .line");
+  
+      // 1. Trigger spread effect on container
+      crosshair.classList.remove("crosshair-spread");
+      void crosshair.offsetWidth;
+      crosshair.classList.add("crosshair-spread");
+  
+      setTimeout(() => {
+        crosshair.classList.remove("crosshair-spread");
+      }, 100);
+  
+      // 2. Flash one random color per shot
+      const flashColors = ['white', 'orange', 'yellow', 'red'];
+      const color = flashColors[Math.floor(Math.random() * flashColors.length)];
+  
+      lines.forEach((line) => {
+        line.classList.remove("crosshair-flash");
+        line.style.backgroundColor = color;
+        void line.offsetWidth;
+        line.classList.add("crosshair-flash");
+  
+        setTimeout(() => {
+          line.classList.remove("crosshair-flash");
+          line.style.backgroundColor = 'white';
+        }, 150);
+      });
+  
       this.timeSinceLastShot = 0;
     }
-  }  
+  }
+  
 }
 
 export default Gun;
