@@ -6,14 +6,31 @@
     <link rel="stylesheet" href="./src/css/play.css" />
   </head>
   <body>
+    <!-- Loading Screen -->
     <div id="container" class="visible">
       <span class="loading-anim"></span>
     </div>
 
+    <!-- Game Canvas -->
     <div id="game-container" class="hidden">
       <canvas id="game-canvas"></canvas>
     </div>
 
+    <!-- UI Overlay (initially hidden) -->
+    <div id="game-ui" class="hidden">
+      <div id="crosshair">
+        <div class="line top"></div>
+        <div class="line bottom"></div>
+        <div class="line left"></div>
+        <div class="line right"></div>
+      </div>      
+      <div id="hud">
+        <div class="hud-item">🔦 Battery: <span id="battery">100%</span></div>
+        <div class="hud-item">💥 Ammo: <span id="ammo">30 / ∞</span></div>
+      </div>
+    </div>
+
+    <!-- Game Logic -->
     <script type="module" src="./src/pages/play.js"></script>
   </body>
 </html>

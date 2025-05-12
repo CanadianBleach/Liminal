@@ -73,6 +73,11 @@ export function updateFlashlightBattery(delta) {
       flashlightState.battery + flashlightState.rechargeRate * delta
     );
   }
+  const batteryDisplay = document.getElementById("battery");
+if (batteryDisplay) {
+  const percent = (flashlightState.battery / flashlightState.maxBattery) * 100;
+  batteryDisplay.textContent = `${Math.floor(percent)}%`;
+}
 }
 
 export function updateFlashlight(camera, flashlight, target) {

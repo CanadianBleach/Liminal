@@ -5,6 +5,7 @@ body {
   background-color: #000;
 }
 
+/* === GAME CANVAS === */
 #game-container {
   background-color: #000;
   position: absolute;
@@ -12,15 +13,77 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 0;
 }
 
-#gameCanvas {
+#game-canvas {
   display: block;
+  position: absolute;
   width: 100%;
   height: 100%;
+  z-index: 0;
 }
 
+/* === LOADING SCREEN (play.html only) === */
+#container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1s ease;
+}
+
+.loading-anim {
+  color: white;
+  font-family: monospace;
+  font-size: 18px;
+  animation: pulse 1s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* === UI OVERLAY === */
+#game-ui {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+#game-ui.visible {
+  opacity: 1;
+}
+
+
+#hud {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: white;
+  font-family: monospace;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.hud-item {
+  margin-bottom: 4px;
+}
+
+/* === INDEX START SCREEN === */
 #start-screen {
   position: absolute;
   width: 100vw;
@@ -30,6 +93,7 @@ body {
   justify-content: center;
   align-items: center;
   background: linear-gradient(45deg, #1a1a1a, #000000);
+  z-index: 10;
 }
 
 #start-screen h1 {
@@ -39,17 +103,6 @@ body {
   letter-spacing: 15px;
   margin-bottom: 50px;
   animation: glow 2s ease-in-out infinite alternate;
-}
-
-#start-screen {
-  position: absolute;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(45deg, #1a1a1a, #000000);
 }
 
 @keyframes glow {
@@ -62,15 +115,7 @@ body {
   }
 }
 
-#start-screen h1 {
-  color: #fff;
-  font-size: 5em;
-  font-family: "Arial", sans-serif;
-  letter-spacing: 15px;
-  margin-bottom: 50px;
-  animation: glow 2s ease-in-out infinite alternate;
-}
-
+/* === BUTTONS === */
 button {
   margin: 16px;
   padding: 15px 30px;
@@ -111,6 +156,7 @@ button:hover::before {
   left: 100%;
 }
 
+/* === FILE UPLOAD === */
 .hidden-file-input {
   position: absolute;
   left: -9999px;
@@ -118,14 +164,11 @@ button:hover::before {
 }
 
 .upload-wrapper {
-  position: relative; /* Needed for absolute positioning */
-  display: inline-block; /* Or another display style */
+  position: relative;
+  display: inline-block;
 }
 
-input:hover::before {
-  left: 100%;
-}
-
+/* === INSTRUCTIONS === */
 #instructions {
   position: absolute;
   top: 50%;
@@ -141,12 +184,79 @@ input:hover::before {
   border-radius: 5px;
 }
 
+/* === UTILITY CLASSES === */
 .hidden {
   opacity: 0;
   transition: opacity 1s ease-out;
+  pointer-events: none;
 }
 
 .visible {
   opacity: 1;
   transition: opacity 1s ease-out;
 }
+/* === Crosshair Core Styles === */
+/* === CROSSHAIR STRUCTURE === */
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.line {
+  position: absolute;
+  background-color: white;
+  width: 2px;
+  height: 12px;
+  opacity: 0.75;
+  transition: transform 0.1s ease-out, background-color 0.1s, box-shadow 0.1s;
+}
+
+.top {
+  top: -16px;
+  transform: translateY(0);
+}
+
+.bottom {
+  bottom: -16px;
+  transform: translateY(0);
+}
+
+.left {
+  left: -16px;
+  width: 12px;
+  height: 2px;
+  transform: translateX(0);
+}
+
+.right {
+  right: -16px;
+  width: 12px;
+  height: 2px;
+  transform: translateX(0);
+}
+
+/* === SPREAD EFFECT (expansion) === */
+.crosshair-spread .top    { transform: translateY(-6px); }
+.crosshair-spread .bottom { transform: translateY(6px); }
+.crosshair-spread .left   { transform: translateX(-6px); }
+.crosshair-spread .right  { transform: translateX(6px); }
+
+/* === FLASH EFFECT (color + glow) === */
+.line.crosshair-flash {
+  animation: crosshairFlashSingle 0.15s ease-out;
+}
+
+@keyframes crosshairFlashSingle {
+  0%   { background-color: white; box-shadow: none; }
+  25%  { background-color: orange; box-shadow: 0 0 6px orange; }
+  50%  { background-color: yellow; box-shadow: 0 0 8px yellow; }
+  75%  { background-color: red; box-shadow: 0 0 6px red; }
+  100% { background-color: white; box-shadow: none; }
+}
+
