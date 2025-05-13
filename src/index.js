@@ -30,32 +30,11 @@ uploadButton.addEventListener('click', () => {
     fileInput.click();
 });
 
-fileInput.addEventListener('change', () => {
-    const file = fileInput.files[0];
-    console.log('[DEBUG] File selected:', file);
-
-    if (!file) {
-        console.warn('[DEBUG] No file selected');
-        return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-        const imageDataUrl = event.target.result;
-        console.log('[DEBUG] Data URL:', imageDataUrl);
-        localStorage.setItem('enemyTexture', imageDataUrl);
-        uploadButton.textContent = `Selected: ${file.name}`;
-    };
-
-    reader.onerror = function (error) {
-        console.error('[ERROR] FileReader failed:', error);
-    };
-
-    try {
-        reader.readAsDataURL(file);
-        console.log('[DEBUG] Called readAsDataURL');
-    } catch (e) {
-        console.error('[EXCEPTION] Failed to read file:', e);
-    }
+fileInput.addEventListener('change', function (e) {
+  const reader = new FileReader();
+  reader.onload = function () {
+    localStorage.setItem('enemyTexture', reader.result);
+    alert('Enemy texture saved!');
+  };
+  reader.readAsDataURL(e.target.files[0]);
 });

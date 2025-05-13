@@ -21,17 +21,43 @@ export class EnemyManager {
     this._cameraPos = new THREE.Vector3(); // reusable
   }
 
-  spawnEnemy(textureUrl = this.textureUrl) {
+  spawnEnemy() {
     const spawnPos = new THREE.Vector3(
       Math.random() * 40 - 20,
       1.5,
       Math.random() * 40 - 20
     );
+
+    let textureUrl = './textures/scary.png';
+
+    const base64Image = localStorage.getItem('enemyTexture');
+    if (base64Image) {
+      const blob = this.base64ToBlob(base64Image, 'image/png');
+      textureUrl = URL.createObjectURL(blob);
+    }
+
     const enemy = new Enemy(this.scene, spawnPos, textureUrl);
     enemy.spawnedAt = performance.now() / 1000;
     this.enemies.push(enemy);
   }
-  
+
+  base64ToBlob(base64, mime) {
+    const byteCharacters = atob(base64.split(',')[1]);
+    const byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+      const slice = byteCharacters.slice(offset, offset + 512);
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+
+    return new Blob(byteArrays, { type: mime });
+  }
+
 
   update(delta, playerHealth) {
     const now = performance.now() / 1000;

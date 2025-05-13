@@ -1,8 +1,9 @@
+
 import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
 import { playSound } from '../sounds/audio';
 
-const MOVE_SPEED = 6;
+const MOVE_SPEED = 3;
 const MOVEMENT_INTERPOLATION = 6;
 const JUMP_SPEED = 8;
 const GRAVITY = 9.81;
@@ -19,6 +20,7 @@ const DOLPHIN_DIVE_UPWARD = 5;
 const DOLPHIN_DIVE_COOLDOWN_TIME = 5;
 const DOLPHIN_DIVE_WINDOW = 3;
 const DIVE_TILT_AMOUNT = .2;
+const BUNNY_BOOST = 5;
 
 export function initPlayerState() {
   return {
@@ -29,6 +31,7 @@ export function initPlayerState() {
     direction: new THREE.Vector3(),
     canJump: true,
     isJumping: false,
+    jumpTriggered: false,
     jumpStartTime: 0,
     sprintTime: MAX_SPRINT_DURATION,
     wasSprinting: false,
@@ -39,6 +42,14 @@ export function initPlayerState() {
     dolphinDiveTriggered: false,
     dolphinDiveVelocity: new THREE.Vector3(),
     lastJumpTime: 0,
+    lastGroundedTime: 0,
+    jumpBufferedTime: 0,
+    health: {
+      current: 100,
+      max: 100,
+      damageInterval: 3,
+      damageTimer: 0
+    }
   };
 }
 
@@ -51,18 +62,11 @@ export function setupInputHandlers(state) {
       case 'KeyD': state.keys.right = true; break;
       case 'KeyF': toggleFlashlight(); break;
       case 'ControlLeft':
-
         state.isCrouching = true;
         const now = performance.now() / 1000;
         const recentlySprinted = (now - state.lastSprintTime) < DOLPHIN_DIVE_WINDOW;
         const recentlyJumped = (now - state.lastJumpTime) < DOLPHIN_DIVE_WINDOW;
-
-        if (
-          recentlyJumped &&
-          recentlySprinted &&
-          state.dolphinDiveCooldown <= 0 &&
-          state.direction.z > 0.1
-        ) {
+        if (recentlyJumped && recentlySprinted && state.dolphinDiveCooldown <= 0 && state.direction.z > 0.1) {
           state.dolphinDiveTriggered = true;
         }
         break;
@@ -70,12 +74,10 @@ export function setupInputHandlers(state) {
         if (state.sprintTime > 0 && state.sprintReleased) state.keys.sprint = true;
         break;
       case 'Space':
-        if (state.canJump && !state.keys.jump) {
+        if (!state.keys.jump) {
           state.keys.jump = true;
-          state.jumpStartTime = performance.now() / 1000;
-          state.lastJumpTime = performance.now() / 1000;
-          state.isJumping = true;
-          state.canJump = false;
+          state.jumpBufferedTime = performance.now() / 1000;
+          state.jumpTriggered = true;
         }
         break;
     }
@@ -123,23 +125,44 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
   updateDiveCameraFX(tiltContainer, state, delta);
   handleSprintCrouch(delta, state, isAirborne);
   updateMovementDirection(state, controls);
-  updateMovementVelocity(delta, state);
+  updateMovementVelocity(delta, state, isAirborne);
 
   const grounded = Math.abs(currentVel.y) < 0.05;
+  const now = performance.now() / 1000;
+
   if (grounded) {
+    if (!state.wasGrounded) {
+      state.lastGroundedTime = now;
+    }
     state.canJump = true;
     handleDolphinDiveTrigger(state, controls, playerCollider);
   }
 
+  state.wasGrounded = grounded;
+
   updateDolphinDive(delta, state);
 
   let newY = currentVel.y;
-  if (state.isJumping && state.canJump) {
+
+  const jumpBuffered = (now - state.jumpBufferedTime) < 0.15;
+  const groundedBuffered = grounded || (now - state.lastGroundedTime) < 0.1;
+
+  if (state.jumpTriggered && state.canJump && jumpBuffered && groundedBuffered) {
     newY = JUMP_SPEED;
     state.canJump = false;
-    state.isJumping = false;
-    playSound('jump'); // 🔈 Add this line
+    state.jumpTriggered = false;
+    state.jumpBufferedTime = 0;
+
+    const justLanded = (now - state.lastGroundedTime) < 0.1;
+
+    if (justLanded && state.direction.lengthSq() > 0.1) {
+      const boost = state.direction.clone().multiplyScalar(BUNNY_BOOST);
+      state.velocityTarget.add(boost);
+    }
+
+    playSound('jump');
   }
+
   newY -= GRAVITY * delta;
 
   const finalVelocity = new THREE.Vector3(
@@ -150,8 +173,8 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
   body.setLinvel(finalVelocity, true);
   const newPos = body.translation();
   controls.object.position.set(newPos.x, newPos.y, newPos.z);
-
 }
+
 
 function updateFOV(camera, state, delta) {
   const targetFov = state.keys.sprint ? SPRINT_FOV : BASE_FOV;
@@ -179,14 +202,11 @@ function updateDiveCameraFX(cameraWrapper, state, delta) {
 
 function handleSprintCrouch(delta, state, isAirborne) {
   const now = performance.now() / 1000;
-
   const isSprinting = state.keys.sprint && state.sprintTime > 0;
 
   if (!isAirborne && state.isCrouching) {
-    // Recharge sprint while crouching and grounded
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
   } else if (isSprinting) {
-    // Active sprinting
     state.sprintTime -= delta;
     state.wasSprinting = true;
     state.lastSprintTime = now;
@@ -197,12 +217,10 @@ function handleSprintCrouch(delta, state, isAirborne) {
       state.sprintReleased = false;
     }
   } else {
-    // Passive recharge when not sprinting
     state.sprintTime = Math.min(MAX_SPRINT_DURATION, state.sprintTime + SPRINT_RECHARGE_RATE * delta);
     state.wasSprinting = false;
   }
 }
-
 
 function updateMovementDirection(state, controls) {
   const { keys, direction } = state;
@@ -227,13 +245,18 @@ function updateMovementDirection(state, controls) {
   }
 }
 
-function updateMovementVelocity(delta, state) {
+function updateMovementVelocity(delta, state, isAirborne) {
   const speedMult = state.isCrouching ? CROUCH_SPEED_MULTIPLIER : (state.keys.sprint ? SPRINT_SPEED_MULTIPLIER : 1);
   const moveTarget = state.direction.clone().multiplyScalar(MOVE_SPEED * speedMult);
-  if (moveTarget.lengthSq() > 0) {
-    state.velocityTarget.lerp(moveTarget, MOVEMENT_INTERPOLATION * delta);
+
+  if (isAirborne) {
+    state.velocityTarget.lerp(moveTarget, 2 * delta);
   } else {
-    state.velocityTarget.set(0, 0, 0);
+    if (moveTarget.lengthSq() > 0) {
+      state.velocityTarget.lerp(moveTarget, MOVEMENT_INTERPOLATION * delta);
+    } else {
+      state.velocityTarget.set(0, 0, 0);
+    }
   }
 }
 
@@ -252,7 +275,7 @@ function handleDolphinDiveTrigger(state, controls, playerCollider) {
     state.dolphinDiveVelocity.y = DOLPHIN_DIVE_UPWARD;
 
     state.dolphinDiveActive = true;
-    playSound('dive'); // 🔈 Add this line
+    playSound('dive');
     state.dolphinDiveTriggered = false;
     state.dolphinDiveCooldown = DOLPHIN_DIVE_COOLDOWN_TIME;
 
