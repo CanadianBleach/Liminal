@@ -24,6 +24,8 @@ import {
 } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
+import { listener, loadSounds } from '../helpers/sounds/audio.js';
+export async function initMainScene() {
 export async function initMainScene(enemyTexture) {
     const { scene, camera, renderer, controls, tiltContainer } = initCore();
     const clock = new THREE.Clock();
@@ -169,6 +171,8 @@ function initCore() {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 
     const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.add(listener); // 👂 Add listener to camera
+    const sounds = loadSounds(camera); // 🎵 Load sounds
     const tiltContainer = new THREE.Object3D();
     tiltContainer.add(camera);
 
