@@ -64,18 +64,30 @@ export function setupInputHandlers(state) {
       case 'ControlLeft':
         state.isCrouching = true;
         const now = performance.now() / 1000;
-        const recentlySprinted = (now - state.lastSprintTime) < DOLPHIN_DIVE_WINDOW;
-        const recentlyJumped = (now - state.lastJumpTime) < DOLPHIN_DIVE_WINDOW;
-        if (recentlyJumped && recentlySprinted && state.dolphinDiveCooldown <= 0 && state.direction.z > 0.1) {
+        const recentlySprinted = (now - state.lastSprintTime) < 1.5;
+        const recentlyJumped = (now - state.lastJumpTime) < 1.5;
+
+        console.log("Check:", recentlySprinted, recentlyJumped, state.dolphinDiveCooldown);
+
+        if (
+          recentlyJumped &&
+          recentlySprinted &&
+          state.dolphinDiveCooldown <= 0
+        ) {
           state.dolphinDiveTriggered = true;
+          console.log("DIVE INPUT FIRED");
         }
         break;
       case 'ShiftLeft':
-        if (state.sprintTime > 0 && state.sprintReleased) state.keys.sprint = true;
+        if (state.sprintTime > 0 && state.sprintReleased) {
+          state.keys.sprint = true;
+          state.lastSprintTime = performance.now() / 1000;
+        }
         break;
       case 'Space':
         if (!state.keys.jump) {
           state.keys.jump = true;
+          state.lastJumpTime = performance.now() / 1000;
           state.jumpBufferedTime = performance.now() / 1000;
           state.jumpTriggered = true;
         }
@@ -135,12 +147,13 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
       state.lastGroundedTime = now;
     }
     state.canJump = true;
-    handleDolphinDiveTrigger(state, controls, playerCollider);
   }
+
+  handleDolphinDiveTrigger(state, controls, playerCollider);
 
   state.wasGrounded = grounded;
 
-  updateDolphinDive(delta, state);
+  updateDolphinDive(delta, state, controls, playerCollider);
 
   let newY = currentVel.y;
 
@@ -261,7 +274,8 @@ function updateMovementVelocity(delta, state, isAirborne) {
 }
 
 function handleDolphinDiveTrigger(state, controls, playerCollider) {
-  if (!state.dolphinDiveTriggered && state.dolphinDiveCooldown > 0) {
+  if (state.dolphinDiveTriggered && state.dolphinDiveCooldown <= 0) {
+    console.log("DIVE TRIGGERED");
     state.dolphinDiveCooldown = Math.max(0, state.dolphinDiveCooldown - 0.016);
   }
 
@@ -287,7 +301,7 @@ function handleDolphinDiveTrigger(state, controls, playerCollider) {
   }
 }
 
-function updateDolphinDive(delta, state) {
+function updateDolphinDive(delta, state, controls, playerCollider) {
   if (state.dolphinDiveActive) {
     state.dolphinDiveVelocity.x *= 0.96;
     state.dolphinDiveVelocity.z *= 0.96;
@@ -297,12 +311,16 @@ function updateDolphinDive(delta, state) {
     );
 
     const horizontalSpeedSq =
-      state.dolphinDiveVelocity.x * state.dolphinDiveVelocity.x +
-      state.dolphinDiveVelocity.z * state.dolphinDiveVelocity.z;
+      state.dolphinDiveVelocity.x ** 2 + state.dolphinDiveVelocity.z ** 2;
 
     if (horizontalSpeedSq < 0.15) {
       state.dolphinDiveActive = false;
       state.dolphinDiveVelocity.set(0, 0, 0);
+
+      // 👇 Reset posture
+      playerCollider.setHalfHeight(STAND_HEIGHT / 2);
+      controls.object.position.y = STAND_HEIGHT;
     }
   }
 }
+
