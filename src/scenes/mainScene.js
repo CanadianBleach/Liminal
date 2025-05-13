@@ -8,7 +8,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 
-import { updatePlayerPhysics } from '../helpers/player/player.js';
+import { initPlayerPhysics, updatePlayerPhysics } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
 import BulletManager from '../helpers/combat/bulletManager.js';
@@ -147,17 +147,4 @@ function setupEvents(camera, renderer, controls) {
 
 function setupLighting(scene) {
     scene.add(new THREE.AmbientLight(0xffffff, 4));
-}
-
-function initPlayerPhysics(world) {
-    const playerDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 2.0, 0);
-    playerDesc.canSleep = false;
-    const body = world.createRigidBody(playerDesc);
-    body.setEnabledRotations(false, true, false);
-    body.setAngularDamping(1.0);
-
-    const colliderDesc = RAPIER.ColliderDesc.capsule(0.35, 0.8).setFriction(0.0).setDensity(1.0);
-    const collider = world.createCollider(colliderDesc, body);
-
-    return { playerBody: body, playerCollider: collider };
 }

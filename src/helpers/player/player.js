@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
 import { playSound } from '../sounds/audio';
+import RAPIER from '@dimforge/rapier3d-compat';
 
 const MOVE_SPEED = 3;
 const MOVEMENT_INTERPOLATION = 6;
@@ -51,6 +52,19 @@ export function initPlayerState() {
       damageTimer: 0
     }
   };
+}
+
+export function initPlayerPhysics(world) {
+  const playerDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 2.0, 0);
+  playerDesc.canSleep = false;
+  const body = world.createRigidBody(playerDesc);
+  body.setEnabledRotations(false, true, false);
+  body.setAngularDamping(1.0);
+
+  const colliderDesc = RAPIER.ColliderDesc.capsule(0.35, 0.8).setFriction(0.0).setDensity(1.0);
+  const collider = world.createCollider(colliderDesc, body);
+
+  return { playerBody: body, playerCollider: collider };
 }
 
 export function setupInputHandlers(state) {
