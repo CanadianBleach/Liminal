@@ -8,7 +8,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
-import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
+//import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
 
 import { updatePlayerPhysics } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
@@ -24,16 +24,36 @@ import {
 } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
-export async function initMainScene() {
+export async function initMainScene(enemyTexture) {
     const { scene, camera, renderer, controls, tiltContainer } = initCore();
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
     const playerState = initPlayerState();
-    const enemyManager = new EnemyManager(scene, camera);
+    const enemyManager = new EnemyManager(scene, camera, enemyTexture);
+
+    const playerHealth = {
+        current: 100,
+        max: 100,
+        damageInterval: 3,
+        damageTimer: 0
+    };
+
+    const deathOverlay = document.createElement('div');
+    deathOverlay.id = 'death-overlay';
+    deathOverlay.style.position = 'fixed';
+    deathOverlay.style.top = '0';
+    deathOverlay.style.left = '0';
+    deathOverlay.style.width = '100vw';
+    deathOverlay.style.height = '100vh';
+    deathOverlay.style.backgroundColor = 'rgba(255, 0, 0, 0.4)';
+    deathOverlay.style.zIndex = '200';
+    deathOverlay.style.opacity = '0';
+    deathOverlay.style.transition = 'opacity 1s ease';
+    document.body.appendChild(deathOverlay);
 
     await RAPIER.init();
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
-    const bulletManager = new BulletManager(scene, rapierWorld);
+    const bulletManager = new BulletManager(scene, rapierWorld, enemyManager);
     const gunController = new Gun(bulletManager, camera);
 
     const playerDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(0, 2.0, 0);
@@ -66,7 +86,6 @@ export async function initMainScene() {
 
     document.body.appendChild(renderer.domElement);
 
-    // Return a startRendering function that begins the render loop when called
     return function startRendering() {
         animate();
     };
@@ -74,10 +93,11 @@ export async function initMainScene() {
     function animate() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
+        document.getElementById('player-health').textContent = playerHealth.current;
 
         updateFlashlightBattery(delta);
         updateFlashlight(camera, flashlight, flashlightTarget);
-        enemyManager.update(delta);
+        enemyManager.update(delta, playerHealth);
 
         if (controls.isLocked) {
             updatePlayerPhysics(delta, playerState, playerBody, controls, tiltContainer, playerCollider);
@@ -100,33 +120,45 @@ export async function initMainScene() {
 
         bulletManager.update(delta);
         updateGunAnimation(delta, camera);
+
         for (const bullet of bulletManager.bullets) {
             for (const enemy of enemyManager.enemies) {
-                if (!enemy.alive) continue;
+                if (!enemy.alive || !enemy.mesh) continue;
 
                 const bulletPos = bullet.getPosition();
                 const enemyPos = enemy.mesh.position;
                 const distance = bulletPos.distanceTo(enemyPos);
-            
+
                 if (distance < 0.6 && !bullet.hitEnemies.has(enemy)) {
                     bullet.hitEnemies.add(enemy);
-                    if (enemy.alive) {
-                      enemy.takeDamage(10);
-                      if (!enemy.alive) {
-                        enemyManager.killCount++;
-                        const killsDisplay = document.getElementById('kills');
-                        if (killsDisplay) {
-                          killsDisplay.textContent = enemyManager.killCount;
-                        }
-                      }
-                      bullet.markedForRemoval = true;
+                    enemy.takeDamage(10);
+
+                    if (!enemy.alive) {
+                        enemy.destroy();
                     }
-                  }
+
+                    bullet.markedForRemoval = true;
+                }
             }
-          }
-          
+        }
+
         gunController.update(delta, controls);
         composer.render();
+
+        const killsDisplay = document.getElementById('kills');
+        if (killsDisplay) {
+            killsDisplay.textContent = enemyManager.killCount;
+        }
+
+        const healthUI = document.getElementById('player-health');
+        if (healthUI) healthUI.textContent = playerHealth.current;
+
+        if (playerHealth.current <= 0) {
+            deathOverlay.style.opacity = '1';
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        }
     }
 }
 
@@ -156,7 +188,6 @@ function initCore() {
 function setupPostProcessingEffects(renderer, scene, camera) {
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new ShaderPass(LuminosityShader));
     composer.addPass(new FilmPass(0.4, 0.025, 648, false));
     const vignettePass = new ShaderPass(VignetteShader);
     vignettePass.uniforms['offset'].value = 1.0;

@@ -2,14 +2,14 @@ import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
 import RAPIER from '@dimforge/rapier3d-compat';
 
-const MOVE_SPEED = 4;
+const MOVE_SPEED = 6;
 const MOVEMENT_INTERPOLATION = 6;
 const JUMP_SPEED = 8;
 const GRAVITY = 9.81;
 const STAND_HEIGHT = 1.6;
 const CROUCH_HEIGHT = 1.0;
 const CROUCH_SPEED_MULTIPLIER = 0.4;
-const SPRINT_SPEED_MULTIPLIER = 1.2;
+const SPRINT_SPEED_MULTIPLIER = 1.8;
 const MAX_SPRINT_DURATION = 5.0;
 const SPRINT_RECHARGE_RATE = 0.5;
 const BASE_FOV = 80;

@@ -6,8 +6,7 @@ export class EnemyManager {
     this.scene = scene;
     this.camera = camera;
     this.enemies = [];
-
-    this.textureUrl = './textures/scary.png';
+    this.textureUrl = textureUrl || './textures/scary.png';
 
     this.spawnInterval = 8;
     this.spawnTimer = 0;
@@ -19,11 +18,10 @@ export class EnemyManager {
     this.lastRampTime = 0;
 
     this.enemyLifetime = 25;
-
-    this._cameraPos = new THREE.Vector3(); // reusable vector for efficiency
+    this._cameraPos = new THREE.Vector3(); // reusable
   }
 
-  spawnEnemy(textureUrl) {
+  spawnEnemy(textureUrl = this.textureUrl) {
     const spawnPos = new THREE.Vector3(
       Math.random() * 40 - 20,
       1.5,
@@ -33,12 +31,14 @@ export class EnemyManager {
     enemy.spawnedAt = performance.now() / 1000;
     this.enemies.push(enemy);
   }
+  
 
-  update(delta) {
+  update(delta, playerHealth) {
     const now = performance.now() / 1000;
     this.spawnTimer += delta;
     this.timeElapsed += delta;
 
+    // Spawn rate ramping
     if (now - this.lastRampTime > 20 && this.spawnInterval > this.spawnRateMin) {
       this.spawnInterval *= this.spawnRateDecay;
       this.spawnInterval = Math.max(this.spawnInterval, this.spawnRateMin);
@@ -47,24 +47,53 @@ export class EnemyManager {
     }
 
     if (this.spawnTimer >= this.spawnInterval) {
-      this.spawnEnemy(this.textureUrl);
+      this.spawnEnemy();
       this.spawnTimer = 0;
     }
 
-    // Get camera world position safely for nested structures
+    // Get player world position
     this.camera.getWorldPosition(this._cameraPos);
 
+    // Update each enemy
     this.enemies = this.enemies.filter(enemy => {
       const age = now - enemy.spawnedAt;
-      if (age > this.enemyLifetime) {
-        this.scene.remove(enemy.mesh);
-        enemy.mesh.geometry.dispose();
-        enemy.mesh.material.dispose();
-        return false;
-      } else {
-        enemy.update(this._cameraPos, delta);
-        return true;
+
+      // Remove if dead or expired
+      if (!enemy.alive || age > this.enemyLifetime) {
+        if (enemy.mesh) {
+          this.scene.remove(enemy.mesh);
+          enemy.mesh.geometry.dispose();
+          enemy.mesh.material.dispose();
+        }
+
+        if (!enemy.alive) {
+          this.killCount++;
+          const killsDisplay = document.getElementById('kills');
+          if (killsDisplay) {
+            killsDisplay.textContent = String(this.killCount);
+          }
+          console.log(`Enemy removed. Kill count: ${this.killCount}`);
+        }
+
+        return false; // remove from array
       }
+
+      // Still alive – move and possibly damage player
+      enemy.update(this._cameraPos, delta);
+
+      const dist = enemy.mesh.position.distanceTo(this._cameraPos);
+      if (dist <= enemy.minDistanceToPlayer) {
+        playerHealth.damageTimer += delta;
+        if (playerHealth.damageTimer >= playerHealth.damageInterval) {
+          playerHealth.damageTimer = 0;
+          playerHealth.current = Math.max(0, playerHealth.current - 10);
+          console.log(`Player hit! Health: ${playerHealth.current}`);
+        }
+      } else {
+        playerHealth.damageTimer = 0;
+      }
+
+      return true; // keep enemy
     });
   }
 }
