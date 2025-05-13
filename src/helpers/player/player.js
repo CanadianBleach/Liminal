@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
-import RAPIER from '@dimforge/rapier3d-compat';
+import { playSound } from '../sounds/audio';
 
 const MOVE_SPEED = 4;
 const MOVEMENT_INTERPOLATION = 6;
@@ -138,6 +138,7 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
     newY = JUMP_SPEED;
     state.canJump = false;
     state.isJumping = false;
+    playSound('jump'); // 🔈 Add this line
   }
   newY -= GRAVITY * delta;
 
@@ -251,6 +252,7 @@ function handleDolphinDiveTrigger(state, controls, playerCollider) {
     state.dolphinDiveVelocity.y = DOLPHIN_DIVE_UPWARD;
 
     state.dolphinDiveActive = true;
+    playSound('dive'); // 🔈 Add this line
     state.dolphinDiveTriggered = false;
     state.dolphinDiveCooldown = DOLPHIN_DIVE_COOLDOWN_TIME;
 

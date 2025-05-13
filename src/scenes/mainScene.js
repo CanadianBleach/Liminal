@@ -24,6 +24,7 @@ import {
 } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
+import { listener, loadSounds } from '../helpers/sounds/audio.js';
 export async function initMainScene() {
     const { scene, camera, renderer, controls, tiltContainer } = initCore();
     const clock = new THREE.Clock();
@@ -107,24 +108,24 @@ export async function initMainScene() {
                 const bulletPos = bullet.getPosition();
                 const enemyPos = enemy.mesh.position;
                 const distance = bulletPos.distanceTo(enemyPos);
-            
+
                 if (distance < 0.6 && !bullet.hitEnemies.has(enemy)) {
                     bullet.hitEnemies.add(enemy);
                     if (enemy.alive) {
-                      enemy.takeDamage(10);
-                      if (!enemy.alive) {
-                        enemyManager.killCount++;
-                        const killsDisplay = document.getElementById('kills');
-                        if (killsDisplay) {
-                          killsDisplay.textContent = enemyManager.killCount;
+                        enemy.takeDamage(10);
+                        if (!enemy.alive) {
+                            enemyManager.killCount++;
+                            const killsDisplay = document.getElementById('kills');
+                            if (killsDisplay) {
+                                killsDisplay.textContent = enemyManager.killCount;
+                            }
                         }
-                      }
-                      bullet.markedForRemoval = true;
+                        bullet.markedForRemoval = true;
                     }
-                  }
+                }
             }
-          }
-          
+        }
+
         gunController.update(delta, controls);
         composer.render();
     }
@@ -137,6 +138,8 @@ function initCore() {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 
     const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.add(listener); // 👂 Add listener to camera
+    const sounds = loadSounds(camera); // 🎵 Load sounds
     const tiltContainer = new THREE.Object3D();
     tiltContainer.add(camera);
 
