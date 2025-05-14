@@ -58,7 +58,6 @@ export function updateFlashlightBattery(delta) {
     const batteryFactor = flashlightState.battery / flashlightState.maxBattery;
     flashlightState.currentIntensity = flashlightState.maxIntensity * batteryFactor;
 
-    // Flicker when under 20%
     if (batteryFactor < 0.25) {
       light.visible = Math.random() > 0.9;
       flashlightState.currentIntensity += Math.random() * 2;

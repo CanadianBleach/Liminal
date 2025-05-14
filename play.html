@@ -24,12 +24,39 @@
         <div class="line left"></div>
         <div class="line right"></div>
       </div>      
-      <div id="hud">
-        <div class="hud-item">❤️ Health: <span id="player-health">100</span></div>
-        <div class="hud-item">☠️ Kills: <span id="kills">0</span></div>
-        <div class="hud-item">🔦 Battery: <span id="battery">100%</span></div>
-        <div class="hud-item">💥 Ammo: <span id="ammo">30 / ∞</span></div>
+    <div id="game-ui">
+      <div class="top-bar">
+        <div class="health-container">
+          <div class="icon">❤️</div>
+          <div class="bar-bg">
+            <div class="bar health-bar" id="health-bar"></div>
+          </div>
+        </div>
+
+        <div class="battery-container">
+          <div class="icon">🔋</div>
+          <div class="bar-bg">
+            <div class="bar battery-bar" id="battery-bar"></div>
+          </div>
+        </div>
+
+        <div class="kills">☠️ Kills: <span id="kill-count">0</span></div>
       </div>
+
+      <div class="bottom-bar">
+        <div class="sprint-container">
+          <div class="bar-bg">
+            <div class="bar sprint-bar" id="sprint-bar"></div>
+          </div>
+        </div>
+
+        <div class="ammo">
+          🔫 Ammo: <span id="ammo-current">10</span>/<span id="ammo-reserve"
+            >30</span
+          >
+        </div>
+      </div>
+
     </div>
 
     <!-- Game Logic -->

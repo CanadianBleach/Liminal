@@ -15,11 +15,11 @@ import BulletManager from '../helpers/combat/bulletManager.js';
 import { loadGunModel } from '../helpers/player/gunModel.js';
 import { attachGun, updateGunAnimation, setGunMovementState } from '../helpers/player/gunAnimation.js';
 import Gun from '../helpers/combat/gun.js';
-import { createFlashlight, updateFlashlightBattery, updateFlashlight } from '../helpers/player/flashlight.js';
+import { createFlashlight, updateFlashlightBattery, updateFlashlight, flashlightState } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
 import { listener, loadSounds } from '../helpers/sounds/audio.js';
-import { updateHealthUI, updateKillsUI, setupDeathOverlay } from '../helpers/ui/ui.js';
+import { getUIElements, setupDeathOverlay, updateUI } from '../helpers/ui/ui.js';
 
 export async function initMainScene() {
     const { scene, camera, renderer, controls, tiltContainer } = initCore();
@@ -28,6 +28,8 @@ export async function initMainScene() {
     const playerState = initPlayerState();
     const enemyManager = new EnemyManager(scene, camera);
     const deathOverlay = setupDeathOverlay();
+
+    getUIElements();
 
     await RAPIER.init();
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
@@ -73,8 +75,7 @@ export async function initMainScene() {
         });
 
         composer.render();
-        updateKillsUI(enemyManager.killCount);
-        updateHealthUI(playerState.health);
+        updateUI(playerState, enemyManager.killCount, flashlightState);
 
         if (playerState.health.current <= 0) {
             deathOverlay.style.opacity = '1';

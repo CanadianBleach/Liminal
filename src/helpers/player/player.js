@@ -19,7 +19,6 @@ const SPRINT_FOV = 105;
 const DOLPHIN_DIVE_FORCE = 100;
 const DOLPHIN_DIVE_UPWARD = 5;
 const DOLPHIN_DIVE_COOLDOWN_TIME = 5;
-const DOLPHIN_DIVE_WINDOW = 3;
 const DIVE_TILT_AMOUNT = .2;
 const BUNNY_BOOST = 5;
 
@@ -52,6 +51,10 @@ export function initPlayerState() {
       damageTimer: 0
     }
   };
+}
+
+export function getMaxSprintTime() {
+  return MAX_SPRINT_DURATION;
 }
 
 export function initPlayerPhysics(world) {
