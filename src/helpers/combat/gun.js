@@ -1,5 +1,10 @@
 import * as THREE from 'three';
 import { triggerRecoil } from '../player/gunAnimation.js';
+import { triggerMuzzleFlash } from '../player/gunAnimation.js';
+import { attachGun } from '../player/gunAnimation.js';
+import { getMuzzleWorldPosition} from '../player/gunAnimation.js';
+
+
 
 class Gun {
   constructor(bulletManager, camera) {
@@ -27,15 +32,14 @@ class Gun {
     if (!controls.isLocked) return;
 
     if (this.isMouseDown && this.timeSinceLastShot >= this.cooldown) {
-      const shootOrigin = new THREE.Vector3();
-      const shootDir = new THREE.Vector3();
+      const shootOrigin = getMuzzleWorldPosition();
+    const shootDir = new THREE.Vector3();
+    this.camera.getWorldDirection(shootDir).normalize();
 
-      this.camera.getWorldPosition(shootOrigin);
-      this.camera.getWorldDirection(shootDir).normalize();
-      shootOrigin.add(shootDir.clone().multiplyScalar(0.5));
-
+    if (shootOrigin) {
       this.bulletManager.shoot(shootOrigin, shootDir);
       triggerRecoil();
+      triggerMuzzleFlash();
 
       const crosshair = document.getElementById("crosshair");
       const lines = document.querySelectorAll("#crosshair .line");
@@ -65,6 +69,7 @@ class Gun {
 
       this.timeSinceLastShot = 0;
     }
+   }
   }
 
   handleBulletCollisions(enemies) {
