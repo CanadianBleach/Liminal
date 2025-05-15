@@ -27,7 +27,7 @@ export class Enemy {
 
     if (this.mesh?.material) {
       this.mesh.material.color.set(0xff0000);
-      this.hitFlashTime = 0.15;
+      this.hitFlashTime = 0.05;
     }
 
     if (this.health <= 0) {
