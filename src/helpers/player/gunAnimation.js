@@ -45,10 +45,9 @@ export function attachGun(gun) {
   muzzleFlashMesh.position.set(0.375, -0.175, -3);
   gunMesh.add(muzzleFlashMesh);
 
-  // Add point light for flash
-  muzzleFlashLight = new THREE.PointLight(0xffaa33, 2, 5);
+  muzzleFlashLight = new THREE.PointLight(0xffaa33, 0, 5); // Start at 0 intensity
   muzzleFlashLight.position.set(0.375, -0.15, -3);
-  muzzleFlashLight.visible = false;
+  // Do NOT toggle visibility
   gunMesh.add(muzzleFlashLight);
 }
 
@@ -63,11 +62,10 @@ export function triggerMuzzleFlash() {
     const scale = THREE.MathUtils.randFloat(0.3, 0.6);
     muzzleFlashMesh.scale.setScalar(scale);
 
-    muzzleFlashTimer = 0.05; // shorter flash
+    muzzleFlashTimer = 0.05;
 
     if (muzzleFlashLight) {
-      muzzleFlashLight.intensity = 3;
-      muzzleFlashLight.visible = true;
+      muzzleFlashLight.intensity = 10; // Big pop
     }
   }
 }
@@ -75,7 +73,7 @@ export function triggerMuzzleFlash() {
 export function updateGunAnimation(delta, camera) {
   if (!gunMesh || !camera) return;
 
-  // Recoil spring
+  // Recoil
   recoilVelocity += (0 - recoilOffset) * 9 * delta;
   recoilVelocity *= 0.8;
   recoilOffset += recoilVelocity;
@@ -88,13 +86,12 @@ export function updateGunAnimation(delta, camera) {
   swayOffset.x = THREE.MathUtils.lerp(swayOffset.x, targetX, delta * gunLerp);
   lastYaw = currentYaw;
 
-  // Bobbing / breathing
+  // Bobbing
   bobTime += delta * (isMoving ? (isSprinting ? bobSpeed : 8) : 1.5);
   const bobAmount = isMoving ? (isSprinting ? bobDepth : 0.05) : 0.01;
   const bobOffsetY = Math.sin(bobTime) * bobAmount;
   const bobOffsetX = Math.cos(bobTime * 0.5) * bobAmount * 0.5;
 
-  // Final gun transform
   gunMesh.position.set(
     0 + swayOffset.x + bobOffsetX,
     -0.15 + bobOffsetY,
@@ -108,8 +105,7 @@ export function updateGunAnimation(delta, camera) {
     muzzleFlashMesh.material.opacity = fade;
 
     if (muzzleFlashLight) {
-      muzzleFlashLight.intensity = fade * 3;
-      muzzleFlashLight.visible = fade > 0;
+      muzzleFlashLight.intensity = fade * 100; // 👈 Use intensity only
     }
   }
 }

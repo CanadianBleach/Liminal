@@ -43,7 +43,7 @@ export async function initMainScene() {
     setupLighting(scene);
 
     const { flashlight, flashlightTarget } = createFlashlight();
-    flashlight.visible = false;
+    flashlight.intensity = 0;
     scene.add(flashlight, flashlightTarget);
 
     scene.add(controls.object);

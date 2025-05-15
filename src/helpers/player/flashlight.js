@@ -31,11 +31,9 @@ export function toggleFlashlight() {
 
   if (flashlightState.isOn) {
     flashlightState.isOn = false;
-    light.visible = false;
+    light.intensity = 0; // 👈 keep light in scene, just remove its effect
   } else if (flashlightState.battery >= 1) {
     flashlightState.isOn = true;
-    light.visible = true;
-    // Don't override currentIntensity — keep it dynamic
     light.intensity = flashlightState.currentIntensity;
   }
 }
