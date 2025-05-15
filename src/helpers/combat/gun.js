@@ -42,7 +42,6 @@ class Gun {
         triggerRecoil();
         triggerMuzzleFlash();
         const variant = Math.floor(Math.random() * 3) + 1;
-        console.log(variant);
         playSound(`gunshot_${variant}`);
 
 

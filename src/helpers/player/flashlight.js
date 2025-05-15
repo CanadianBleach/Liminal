@@ -49,7 +49,7 @@ export function updateFlashlightBattery(delta) {
 
     if (flashlightState.battery <= 0) {
       flashlightState.isOn = false;
-      light.visible = false;
+      light.intensity = 0;
       return;
     }
 
@@ -57,8 +57,8 @@ export function updateFlashlightBattery(delta) {
     flashlightState.currentIntensity = flashlightState.maxIntensity * batteryFactor;
 
     if (batteryFactor < 0.25) {
-      light.visible = Math.random() > 0.9;
-      flashlightState.currentIntensity += Math.random() * 2;
+      const flicker = Math.random() * 0.5;
+      flashlightState.currentIntensity *= 0.9 + flicker;
     }
 
     light.intensity = flashlightState.currentIntensity;
@@ -71,10 +71,10 @@ export function updateFlashlightBattery(delta) {
     );
   }
   const batteryDisplay = document.getElementById("battery");
-if (batteryDisplay) {
-  const percent = (flashlightState.battery / flashlightState.maxBattery) * 100;
-  batteryDisplay.textContent = `${Math.floor(percent)}%`;
-}
+  if (batteryDisplay) {
+    const percent = (flashlightState.battery / flashlightState.maxBattery) * 100;
+    batteryDisplay.textContent = `${Math.floor(percent)}%`;
+  }
 }
 
 export function updateFlashlight(camera, flashlight, target) {
