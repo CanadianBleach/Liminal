@@ -20,6 +20,9 @@ import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
 import { listener, loadSounds } from '../helpers/sounds/audio.js';
 import { getUIElements, setupDeathOverlay, updateUI } from '../helpers/ui/ui.js';
+import { setupRoundIndicator } from '../helpers/ui/ui.js';
+
+
 
 export async function initMainScene() {
     const { scene, camera, renderer, controls, tiltContainer } = initCore();
@@ -28,6 +31,7 @@ export async function initMainScene() {
     const playerState = initPlayerState();
     const enemyManager = new EnemyManager(scene, camera);
     const deathOverlay = setupDeathOverlay();
+    setupRoundIndicator();
 
     getUIElements();
 
