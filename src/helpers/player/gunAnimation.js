@@ -40,7 +40,7 @@ export function attachGun(gun) {
     side: THREE.DoubleSide
   });
 
-  const flashGeometry = new THREE.PlaneGeometry(3, 3);
+  const flashGeometry = new THREE.PlaneGeometry(5, 5);
   muzzleFlashMesh = new THREE.Mesh(flashGeometry, flashMaterial);
   muzzleFlashMesh.position.set(0.375, -0.175, -3);
   gunMesh.add(muzzleFlashMesh);
@@ -101,7 +101,7 @@ export function updateGunAnimation(delta, camera) {
   // Muzzle flash fade
   if (muzzleFlashMesh && muzzleFlashMesh.material.opacity > 0) {
     muzzleFlashTimer -= delta;
-    const fade = Math.max(0, muzzleFlashTimer * 20);
+    const fade = Math.max(0, muzzleFlashTimer * 50);
     muzzleFlashMesh.material.opacity = fade;
 
     if (muzzleFlashLight) {
@@ -116,4 +116,3 @@ export function getMuzzleWorldPosition() {
   muzzleFlashMesh.getWorldPosition(worldPos);
   return worldPos;
 }
-
