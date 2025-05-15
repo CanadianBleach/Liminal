@@ -3,6 +3,7 @@ import { triggerRecoil } from '../player/gunAnimation.js';
 import { triggerMuzzleFlash } from '../player/gunAnimation.js';
 import { attachGun } from '../player/gunAnimation.js';
 import { getMuzzleWorldPosition} from '../player/gunAnimation.js';
+import { playSound } from '../sounds/audio.js';
 
 
 
@@ -40,6 +41,7 @@ class Gun {
       this.bulletManager.shoot(shootOrigin, shootDir);
       triggerRecoil();
       triggerMuzzleFlash();
+      playSound('vine_boom');
 
       const crosshair = document.getElementById("crosshair");
       const lines = document.querySelectorAll("#crosshair .line");
