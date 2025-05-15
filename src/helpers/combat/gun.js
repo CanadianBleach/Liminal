@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { triggerRecoil } from '../player/gunAnimation.js';
 import { triggerMuzzleFlash } from '../player/gunAnimation.js';
 import { attachGun } from '../player/gunAnimation.js';
-import { getMuzzleWorldPosition} from '../player/gunAnimation.js';
+import { getMuzzleWorldPosition } from '../player/gunAnimation.js';
 import { playSound } from '../sounds/audio.js';
 
 
@@ -34,44 +34,46 @@ class Gun {
 
     if (this.isMouseDown && this.timeSinceLastShot >= this.cooldown) {
       const shootOrigin = getMuzzleWorldPosition();
-    const shootDir = new THREE.Vector3();
-    this.camera.getWorldDirection(shootDir).normalize();
+      const shootDir = new THREE.Vector3();
+      this.camera.getWorldDirection(shootDir).normalize();
 
-    if (shootOrigin) {
-      this.bulletManager.shoot(shootOrigin, shootDir);
-      triggerRecoil();
-      triggerMuzzleFlash();
-      playSound('vine_boom');
+      if (shootOrigin) {
+        this.bulletManager.shoot(shootOrigin, shootDir);
+        triggerRecoil();
+        triggerMuzzleFlash();
+        const variant = Math.floor(Math.random() * 3) + 1;
+        playSound(`gunshot_${variant}`);
 
-      const crosshair = document.getElementById("crosshair");
-      const lines = document.querySelectorAll("#crosshair .line");
 
-      crosshair.classList.remove("crosshair-spread");
-      void crosshair.offsetWidth;
-      crosshair.classList.add("crosshair-spread");
+        const crosshair = document.getElementById("crosshair");
+        const lines = document.querySelectorAll("#crosshair .line");
 
-      setTimeout(() => {
         crosshair.classList.remove("crosshair-spread");
-      }, 100);
-
-      const flashColors = ['white', 'orange', 'yellow', 'red'];
-      const color = flashColors[Math.floor(Math.random() * flashColors.length)];
-
-      lines.forEach((line) => {
-        line.classList.remove("crosshair-flash");
-        line.style.backgroundColor = color;
-        void line.offsetWidth;
-        line.classList.add("crosshair-flash");
+        void crosshair.offsetWidth;
+        crosshair.classList.add("crosshair-spread");
 
         setTimeout(() => {
-          line.classList.remove("crosshair-flash");
-          line.style.backgroundColor = 'white';
-        }, 150);
-      });
+          crosshair.classList.remove("crosshair-spread");
+        }, 100);
 
-      this.timeSinceLastShot = 0;
+        const flashColors = ['white', 'orange', 'yellow', 'red'];
+        const color = flashColors[Math.floor(Math.random() * flashColors.length)];
+
+        lines.forEach((line) => {
+          line.classList.remove("crosshair-flash");
+          line.style.backgroundColor = color;
+          void line.offsetWidth;
+          line.classList.add("crosshair-flash");
+
+          setTimeout(() => {
+            line.classList.remove("crosshair-flash");
+            line.style.backgroundColor = 'white';
+          }, 150);
+        });
+
+        this.timeSinceLastShot = 0;
+      }
     }
-   }
   }
 
   handleBulletCollisions(enemies) {

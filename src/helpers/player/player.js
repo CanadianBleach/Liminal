@@ -62,7 +62,6 @@ export function initPlayerPhysics(world) {
   playerDesc.canSleep = false;
   const body = world.createRigidBody(playerDesc);
   body.setEnabledRotations(false, true, false);
-  body.setAngularDamping(1.0);
 
   const colliderDesc = RAPIER.ColliderDesc.capsule(0.35, 0.8).setFriction(0.0).setDensity(1.0);
   const collider = world.createCollider(colliderDesc, body);

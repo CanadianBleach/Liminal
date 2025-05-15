@@ -25,6 +25,7 @@ export function buildStaticCollidersFromGLTF(gltf, rapierWorld) {
 
     try {
       const colliderDesc = RAPIER.ColliderDesc.trimesh(vertices, indices);
+      colliderDesc.friction = 0;
       rapierWorld.createCollider(colliderDesc);
     } catch (e) {
       console.warn('[Collider Error] Skipped mesh:', child.name, e);
