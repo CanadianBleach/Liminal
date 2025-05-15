@@ -133,16 +133,17 @@ export function updateFlashlightUI(flashlightState) {
     batteryBar.style.backgroundColor = 'red';
   }
 }
-let currentRound = 1;
-let lastKillCount = 0;
+let lastWaveNumber = 0;
 
 function checkForRoundUpdate(enemyManager) {
-  if (enemyManager.killCount >= lastKillCount + 5) {
-    currentRound++;
-    lastKillCount = enemyManager.killCount;
-    showRoundText(currentRound); // <- call the Three.js text function
+  const currentWave = enemyManager.waveNumber;
+
+  if (currentWave !== lastWaveNumber && enemyManager.waveInProgress) {
+    lastWaveNumber = currentWave;
+    showRoundText(currentWave);
   }
 }
+
 let totalRotation = 0;
 
 export function showRoundText(roundNumber) {

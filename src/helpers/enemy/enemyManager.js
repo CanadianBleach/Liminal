@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Enemy } from './enemy.js';
+import { base64ToBlob } from "../ui/imageLoader";
 
 export class EnemyManager {
   constructor(scene, camera, textureUrl) {
@@ -8,17 +9,28 @@ export class EnemyManager {
     this.enemies = [];
     this.textureUrl = textureUrl || './textures/scary.png';
 
-    this.spawnInterval = 8;
-    this.spawnTimer = 0;
-    this.timeElapsed = 0;
-    this.killCount = 0;
+    // Wave system properties
+    this.waveNumber = 0;
+    this.waveInProgress = false;
+    this.waveCooldown = 10;
+    this.cooldownTimer = 0;
 
-    this.spawnRateMin = 1.5;
-    this.spawnRateDecay = 0.95;
-    this.lastRampTime = 0;
+    // Enemy spawn properties
+    this.enemiesToSpawn = 0;
+    this.spawnedEnemies = 0;
+    this.baseSpawnInterval = 3; // Base time between spawns
+    this.spawnInterval = this.getNextSpawnInterval(); // Randomized spawn interval
+    this.spawnTimer = 0;
 
     this.enemyLifetime = 25;
-    this._cameraPos = new THREE.Vector3(); // reusable
+    this.killCount = 0;
+
+    this._cameraPos = new THREE.Vector3();
+  }
+
+  getNextSpawnInterval() {
+    const variance = 0.5;
+    return this.baseSpawnInterval + (Math.random() * variance * 2 - variance);
   }
 
   spawnEnemy() {
@@ -28,11 +40,10 @@ export class EnemyManager {
       Math.random() * 40 - 20
     );
 
-    let textureUrl = './textures/scary.png';
-
+    let textureUrl = this.textureUrl;
     const base64Image = localStorage.getItem('enemyTexture');
     if (base64Image) {
-      const blob = this.base64ToBlob(base64Image, 'image/png');
+      const blob = base64ToBlob(base64Image, 'image/png');
       textureUrl = URL.createObjectURL(blob);
     }
 
@@ -41,50 +52,42 @@ export class EnemyManager {
     this.enemies.push(enemy);
   }
 
-  base64ToBlob(base64, mime) {
-    const byteCharacters = atob(base64.split(',')[1]);
-    const byteArrays = [];
-
-    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-      const slice = byteCharacters.slice(offset, offset + 512);
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
-    }
-
-    return new Blob(byteArrays, { type: mime });
-  }
-
-
   update(delta, playerHealth) {
     const now = performance.now() / 1000;
-    this.spawnTimer += delta;
-    this.timeElapsed += delta;
 
-    // Spawn rate ramping
-    if (now - this.lastRampTime > 20 && this.spawnInterval > this.spawnRateMin) {
-      this.spawnInterval *= this.spawnRateDecay;
-      this.spawnInterval = Math.max(this.spawnInterval, this.spawnRateMin);
-      this.lastRampTime = now;
-      console.log(`Spawn interval now: ${this.spawnInterval.toFixed(2)}s`);
+    if (!this.waveInProgress && this.enemies.length === 0) {
+      this.cooldownTimer += delta;
+      if (this.cooldownTimer >= this.waveCooldown) {
+        this.waveNumber++;
+        this.enemiesToSpawn = 5 + this.waveNumber * 2;
+        this.spawnedEnemies = 0;
+        this.spawnTimer = 0;
+        this.spawnInterval = this.getNextSpawnInterval();
+        this.waveInProgress = true;
+        this.cooldownTimer = 0;
+      }
     }
 
-    if (this.spawnTimer >= this.spawnInterval) {
-      this.spawnEnemy();
-      this.spawnTimer = 0;
+    if (this.waveInProgress && this.spawnedEnemies < this.enemiesToSpawn) {
+      this.spawnTimer += delta;
+      if (this.spawnTimer >= this.spawnInterval) {
+        this.spawnEnemy();
+        this.spawnedEnemies++;
+        this.spawnTimer = 0;
+        this.spawnInterval = this.getNextSpawnInterval();
+      }
     }
 
-    // Get player world position
+    if (this.waveInProgress && this.spawnedEnemies >= this.enemiesToSpawn && this.enemies.length === 0) {
+      this.waveInProgress = false;
+    }
+
+    // Get player position
     this.camera.getWorldPosition(this._cameraPos);
 
-    // Update each enemy
     this.enemies = this.enemies.filter(enemy => {
       const age = now - enemy.spawnedAt;
 
-      // Remove if dead or expired
       if (!enemy.alive || age > this.enemyLifetime) {
         if (enemy.mesh) {
           this.scene.remove(enemy.mesh);
@@ -95,16 +98,12 @@ export class EnemyManager {
         if (!enemy.alive) {
           this.killCount++;
           const killsDisplay = document.getElementById('kills');
-          if (killsDisplay) {
-            killsDisplay.textContent = String(this.killCount);
-          }
-          console.log(`Enemy removed. Kill count: ${this.killCount}`);
+          if (killsDisplay) killsDisplay.textContent = String(this.killCount);
         }
 
-        return false; // remove from array
+        return false;
       }
 
-      // Still alive – move and possibly damage player
       enemy.update(this._cameraPos, delta);
 
       const dist = enemy.mesh.position.distanceTo(this._cameraPos);
@@ -113,13 +112,12 @@ export class EnemyManager {
         if (playerHealth.damageTimer >= playerHealth.damageInterval) {
           playerHealth.damageTimer = 0;
           playerHealth.current = Math.max(0, playerHealth.current - 10);
-          console.log(`Player hit! Health: ${playerHealth.current}`);
         }
       } else {
         playerHealth.damageTimer = 0;
       }
 
-      return true; // keep enemy
+      return true;
     });
   }
 }
