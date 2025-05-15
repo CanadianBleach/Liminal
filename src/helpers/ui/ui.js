@@ -13,9 +13,9 @@ export function getUIElements() {
   sprintBar = document.getElementById('sprint-bar');
 }
 
-export function updateUI(playerState, kills, battery) {
+export function updateUI(playerState, enemyManager, battery) {
   updateHealthUI(playerState.health);
-  updateKillsUI(kills);
+  updateKillsUI(enemyManager);
   updateFlashlightUI(battery);
   updateSprintUI(playerState);
 }
@@ -51,8 +51,8 @@ export function updateHealthUI(health) {
   }
 }
 
-export function updateKillsUI(kills) {
-  killCounter.textContent = kills;
+export function updateKillsUI(enemyManager) {
+  killCounter.textContent = enemyManager.killCount;
 }
 
 export function setupDeathOverlay() {
