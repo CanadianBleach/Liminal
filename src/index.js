@@ -17,7 +17,7 @@ window.addEventListener('load', () => {
 startButton.addEventListener("click", () => {
     fader.classList = 'hidden';
     setTimeout(() => {
-        window.location.href = '/play.html';
+        window.location.href = './play.html';
     }, 1000);
 });
 
