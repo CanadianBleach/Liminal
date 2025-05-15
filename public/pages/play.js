@@ -1,4 +1,4 @@
-import { initMainScene } from "../../src/scenes/mainScene";
+import { initMainScene } from "../../src/scenes/mainScene.js";
 
 window.addEventListener("load", async () => {
   const loader = document.getElementById("container");
