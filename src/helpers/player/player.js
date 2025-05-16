@@ -310,6 +310,7 @@ function handleDolphinDiveTrigger(state, controls, playerCollider) {
   }
 
   if (state.dolphinDiveTriggered && state.dolphinDiveCooldown <= 0) {
+    playSound('dive');
     const camDir = new THREE.Vector3();
     controls.getDirection(camDir);
     camDir.y = 0;
