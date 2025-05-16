@@ -18,7 +18,15 @@ export function updateUI(playerState, enemyManager, battery) {
   updateKillsUI(enemyManager);
   updateFlashlightUI(battery);
   updateSprintUI(playerState);
+  updateRoundUI(enemyManager);
   checkForRoundUpdate(enemyManager);
+}
+
+export function updateRoundUI(enemyManager) {
+  const roundCounter = document.getElementById('round-count');
+  if (roundCounter) {
+    roundCounter.textContent = enemyManager.waveNumber;
+  }
 }
 
 export function updateSprintUI(playerState) {
@@ -75,46 +83,26 @@ export function setupDeathOverlay() {
 }
 
 let roundOverlay;
-let roundWrapper;
 
 export function setupRoundIndicator() {
-  // Create wrapper div with perspective
-  roundWrapper = document.createElement('div');
-  roundWrapper.id = 'round-wrapper';
-  Object.assign(roundWrapper.style, {
-    position: 'fixed',
-    top: '40%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    perspective: '800px',
-    zIndex: '999',
-    pointerEvents: 'none',
-  });
-
-  // Create the rotating inner div
   roundOverlay = document.createElement('div');
   roundOverlay.id = 'round-indicator';
   Object.assign(roundOverlay.style, {
-    fontSize: '48px',
-    fontWeight: 'bold',
-    color: 'red',
-    textAlign: 'center',
-    width: '300px',
-    backgroundColor: '#111',
-    border: '2px solid red',
-    boxShadow: '0 0 20px red',
-    borderRadius: '10px',
-    transform: 'rotateY(0deg)',
-    transformStyle: 'preserve-3d',
-    backfaceVisibility: 'hidden',
-    opacity: '0',
-    transition: 'opacity 0.3s ease, transform 3s ease',
+  position: 'fixed',
+  top: '40%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  fontSize: '100px',
+  fontWeight: 'bold',
+  color: 'red',
+  opacity: '0',
+  zIndex: '300',
+  pointerEvents: 'none',
+  transition: 'opacity 0.3s ease, transform 3s ease',
+  transformStyle: 'preserve-3d',
+  perspective: '1000px',
   });
-
-  // Nest the indicator inside the wrapper
-  roundWrapper.appendChild(roundOverlay);
-  document.body.appendChild(roundWrapper);
-
+  document.body.appendChild(roundOverlay);
   return roundOverlay;
 }
 
@@ -133,38 +121,38 @@ export function updateFlashlightUI(flashlightState) {
     batteryBar.style.backgroundColor = 'red';
   }
 }
-let lastWaveNumber = 0;
+let currentRound = 1;
+let lastKillCount = 0;
 
 function checkForRoundUpdate(enemyManager) {
-  const currentWave = enemyManager.waveNumber;
-
-  if (currentWave !== lastWaveNumber && enemyManager.waveInProgress) {
-    lastWaveNumber = currentWave;
-    showRoundText(currentWave);
+  if (enemyManager.killCount >= lastKillCount + 5) {
+    currentRound++;
+    lastKillCount = enemyManager.killCount;
+    showRoundText(currentRound); // <- call the Three.js text function
   }
 }
-
 let totalRotation = 0;
 
 export function showRoundText(roundNumber) {
   if (!roundOverlay) return;
 
-  totalRotation += 360;
+  totalRotation += 360; // Increase every round
 
   roundOverlay.textContent = `ROUND ${roundNumber}`;
   roundOverlay.style.opacity = '1';
-  roundOverlay.style.transform = `rotateY(${totalRotation - 360}deg)`;
+  roundOverlay.style.transform = `translate(-50%, -50%) rotateY(${totalRotation - 360}deg)`;
 
   // Force reflow
   roundOverlay.offsetHeight;
 
-  roundOverlay.style.transform = `rotateY(${totalRotation}deg)`;
+  // Apply new transform
+  roundOverlay.style.transform = `translate(-50%, -50%) rotateY(${totalRotation}deg)`;
 
+  // Fade out
   setTimeout(() => {
     roundOverlay.style.opacity = '0';
-  }, 2500);
+  }, 4000);
 }
-
 
 
 
