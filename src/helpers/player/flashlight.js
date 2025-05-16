@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { playSound } from '../sounds/audio';
 
 export const flashlightState = {
   isOn: false,
@@ -26,6 +27,7 @@ export function createFlashlight() {
 }
 
 export function toggleFlashlight() {
+  playSound('flashlight_click');
   const light = flashlightState.flashlight;
   if (!light) return;
 
