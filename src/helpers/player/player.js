@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
 import { controlFootsteps, playSound } from '../sounds/audio';
 import RAPIER from '@dimforge/rapier3d-compat';
+import { setGunMovementState } from './gunAnimation';
 
 const MOVE_SPEED = 3;
 const MOVEMENT_INTERPOLATION = 6;
@@ -34,6 +35,7 @@ export function initPlayerState() {
     jumpTriggered: false,
     jumpStartTime: 0,
     sprintTime: MAX_SPRINT_DURATION,
+    maxSprintTime: MAX_SPRINT_DURATION,
     wasSprinting: false,
     lastSprintTime: 0,
     sprintReleased: true,
@@ -51,10 +53,6 @@ export function initPlayerState() {
       damageTimer: 0
     }
   };
-}
-
-export function getMaxSprintTime() {
-  return MAX_SPRINT_DURATION;
 }
 
 export function initPlayerPhysics(world) {
@@ -129,13 +127,11 @@ export function setupInputHandlers(state) {
   document.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-export function updatePlayerPhysics(delta, state, body, controls, tiltContainer, playerCollider) {
+export function updatePlayer(delta, state, body, controls, tiltContainer, collider, rapierWorld) {
+  if (!controls.isLocked) return;
+
   const currentVel = body.linvel();
   const isAirborne = Math.abs(currentVel.y) > 0.1;
-
-  if (state.dolphinDiveCooldown > 0) {
-    state.dolphinDiveCooldown = Math.max(0, state.dolphinDiveCooldown - delta);
-  }
 
   const cameraWrapper = controls.object;
   let camera;
@@ -149,6 +145,11 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
     return;
   }
 
+  // Main movement logic
+  if (state.dolphinDiveCooldown > 0) {
+    state.dolphinDiveCooldown = Math.max(0, state.dolphinDiveCooldown - delta);
+  }
+
   updateFOV(camera, state, delta);
   updateDiveCameraFX(tiltContainer, state, delta);
   handleSprintCrouch(delta, state, isAirborne);
@@ -159,20 +160,16 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
   const now = performance.now() / 1000;
 
   if (grounded) {
-    if (!state.wasGrounded) {
-      state.lastGroundedTime = now;
-    }
+    if (!state.wasGrounded) state.lastGroundedTime = now;
     state.canJump = true;
   }
 
-  handleDolphinDiveTrigger(state, controls, playerCollider);
-
+  handleDolphinDiveTrigger(state, controls, collider);
+  updateDolphinDive(delta, state, controls, collider);
   state.wasGrounded = grounded;
 
-  updateDolphinDive(delta, state, controls, playerCollider);
-
+  // Handle jumping
   let newY = currentVel.y;
-
   const jumpBuffered = (now - state.jumpBufferedTime) < 0.15;
   const groundedBuffered = grounded || (now - state.lastGroundedTime) < 0.1;
 
@@ -183,7 +180,6 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
     state.jumpBufferedTime = 0;
 
     const justLanded = (now - state.lastGroundedTime) < 0.1;
-
     if (justLanded && state.direction.lengthSq() > 0.1) {
       const boost = state.direction.clone().multiplyScalar(BUNNY_BOOST);
       state.velocityTarget.add(boost);
@@ -192,25 +188,36 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
     playSound('jump');
   }
 
-  newY -= GRAVITY * delta;
-
+  // Apply movement
   const finalVelocity = new THREE.Vector3(
     state.velocityTarget.x,
-    newY,
+    newY - GRAVITY * delta,
     state.velocityTarget.z
   );
   body.setLinvel(finalVelocity, true);
+
+  rapierWorld.step();
+
   const newPos = body.translation();
   controls.object.position.set(newPos.x, newPos.y, newPos.z);
 
+  setGunMovementState({
+    moving: state.velocityTarget.lengthSq() > 0.001,
+    sprinting: state.keys.sprint
+  });
+
   const isMoving = state.direction.lengthSq() > 0.1;
+  let footstepRate = 1;
 
-  let rate = 1;
-  if (state.isCrouching) rate = 0.6;
-  else if (state.keys.sprint) rate = 1.5;
+  if (state.isCrouching) {
+    footstepRate = 0.6;
+  } else if (state.keys.sprint) {
+    footstepRate = 1.5;
+  }
 
-  controlFootsteps(grounded && isMoving, rate);
+  controlFootsteps(grounded && isMoving, footstepRate);
 }
+
 
 
 function updateFOV(camera, state, delta) {
@@ -299,11 +306,11 @@ function updateMovementVelocity(delta, state, isAirborne) {
 
 function handleDolphinDiveTrigger(state, controls, playerCollider) {
   if (state.dolphinDiveTriggered && state.dolphinDiveCooldown <= 0) {
-    console.log("DIVE TRIGGERED");
     state.dolphinDiveCooldown = Math.max(0, state.dolphinDiveCooldown - 0.016);
   }
 
   if (state.dolphinDiveTriggered && state.dolphinDiveCooldown <= 0) {
+    playSound('dive');
     const camDir = new THREE.Vector3();
     controls.getDirection(camDir);
     camDir.y = 0;
@@ -313,7 +320,6 @@ function handleDolphinDiveTrigger(state, controls, playerCollider) {
     state.dolphinDiveVelocity.y = DOLPHIN_DIVE_UPWARD;
 
     state.dolphinDiveActive = true;
-    playSound('dive');
     state.dolphinDiveTriggered = false;
     state.dolphinDiveCooldown = DOLPHIN_DIVE_COOLDOWN_TIME;
 

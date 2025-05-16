@@ -8,7 +8,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 
-import { initPlayerPhysics, updatePlayerPhysics } from '../helpers/player/player.js';
+import { initPlayerPhysics, updatePlayer } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
 import BulletManager from '../helpers/combat/bulletManager.js';
@@ -69,7 +69,7 @@ export async function initMainScene() {
         updateFlashlight(camera, flashlight, flashlightTarget);
         enemyManager.update(delta, playerState.health);
 
-        updatePlayer(delta);
+        updatePlayer(delta, playerState, playerBody, controls, tiltContainer, playerCollider, rapierWorld);
         bulletManager.update(delta);
         gunController.update(delta, controls);
         gunController.handleBulletCollisions(enemyManager.enemies);
@@ -85,19 +85,6 @@ export async function initMainScene() {
         if (playerState.health.current <= 0) {
             deathOverlay.style.opacity = '1';
             setTimeout(() => window.location.reload(), 2000);
-        }
-    }
-
-    function updatePlayer(delta) {
-        if (controls.isLocked) {
-            updatePlayerPhysics(delta, playerState, playerBody, controls, tiltContainer, playerCollider);
-            rapierWorld.step();
-            const newPos = playerBody.translation();
-            controls.object.position.set(newPos.x, newPos.y, newPos.z);
-            setGunMovementState({
-                moving: playerState.velocityTarget.lengthSq() > 0.001,
-                sprinting: playerState.keys.sprint
-            });
         }
     }
 }
