@@ -1,4 +1,3 @@
-import { getMaxSprintTime } from "../player/player";
 import { playSound } from "../sounds/audio";
 
 let batteryBar;
@@ -25,7 +24,7 @@ export function updateUI(playerState, enemyManager, battery) {
 export function updateSprintUI(playerState) {
   if (!sprintBar) return;
 
-  const percent = Math.max(0, Math.min(100, (playerState.sprintTime / getMaxSprintTime()) * 100));
+  const percent = Math.max(0, Math.min(100, (playerState.sprintTime / playerState.maxSprintTime) * 100));
   sprintBar.style.width = `${percent}%`;
 
   // Optional: Color change or fade effect
@@ -149,6 +148,7 @@ function checkForRoundUpdate(enemyManager) {
 let totalRotation = 0;
 
 export function showRoundText(roundNumber) {
+  playSound('round_shange');
   if (!roundOverlay) return;
 
   totalRotation += 360;
