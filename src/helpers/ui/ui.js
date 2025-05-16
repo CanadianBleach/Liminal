@@ -1,4 +1,5 @@
 import { getMaxSprintTime } from "../player/player";
+import { playSound } from "../sounds/audio";
 
 let batteryBar;
 let deathOverlay;
@@ -125,10 +126,12 @@ let currentRound = 1;
 let lastKillCount = 0;
 
 function checkForRoundUpdate(enemyManager) {
-  if (enemyManager.killCount >= lastKillCount + 5) {
-    currentRound++;
-    lastKillCount = enemyManager.killCount;
-    showRoundText(currentRound); // <- call the Three.js text function
+  const currentWave = enemyManager.waveNumber;
+
+  if (currentWave !== lastWaveNumber && enemyManager.waveInProgress) {
+    lastWaveNumber = currentWave;
+    showRoundText(currentWave);
+    playSound('round_change');
   }
 }
 let totalRotation = 0;
