@@ -18,13 +18,14 @@ import Gun from '../helpers/combat/gun.js';
 import { createFlashlight, updateFlashlightBattery, updateFlashlight, flashlightState } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
-import { listener, loadSounds } from '../helpers/sounds/audio.js';
+import { listener, loadSounds, playSound } from '../helpers/sounds/audio.js';
 import { getUIElements, setupDeathOverlay, updateUI } from '../helpers/ui/ui.js';
 import { setupRoundIndicator } from '../helpers/ui/ui.js';
 
 
 
 export async function initMainScene() {
+    playSound('bg_noise');
     const { scene, camera, renderer, controls, tiltContainer } = initCore();
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
@@ -83,7 +84,7 @@ export async function initMainScene() {
 
         if (playerState.health.current <= 0) {
             deathOverlay.style.opacity = '1';
-            setTimeout(() => location.reload(), 2000);
+            setTimeout(() => window.location.reload(), 2000);
         }
     }
 

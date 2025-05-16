@@ -1,4 +1,5 @@
 import { getMaxSprintTime } from "../player/player";
+import { playSound } from "../sounds/audio";
 
 let batteryBar;
 let deathOverlay;
@@ -141,6 +142,7 @@ function checkForRoundUpdate(enemyManager) {
   if (currentWave !== lastWaveNumber && enemyManager.waveInProgress) {
     lastWaveNumber = currentWave;
     showRoundText(currentWave);
+    playSound('round_change');
   }
 }
 

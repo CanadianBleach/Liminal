@@ -1,7 +1,7 @@
 
 import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
-import { playSound } from '../sounds/audio';
+import { controlFootsteps, playSound } from '../sounds/audio';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 const MOVE_SPEED = 3;
@@ -202,6 +202,14 @@ export function updatePlayerPhysics(delta, state, body, controls, tiltContainer,
   body.setLinvel(finalVelocity, true);
   const newPos = body.translation();
   controls.object.position.set(newPos.x, newPos.y, newPos.z);
+
+  const isMoving = state.direction.lengthSq() > 0.1;
+
+  let rate = 1;
+  if (state.isCrouching) rate = 0.6;
+  else if (state.keys.sprint) rate = 1.5;
+
+  controlFootsteps(grounded && isMoving, rate);
 }
 
 
