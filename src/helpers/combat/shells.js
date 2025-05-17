@@ -6,7 +6,7 @@ export default class ShellCasing {
     this.spawnTime = performance.now() / 1000;
 
     // Create cylinder mesh for the shell
-    const geometry = new THREE.CylinderGeometry(0.03, 0.03, 0.1, 12);
+    const geometry = new THREE.CylinderGeometry(0.015, 0.015, 0.1, 6);
     const material = new THREE.MeshStandardMaterial({ color: 0xaaaa22, metalness: 1, roughness: 0.3 });
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.rotation.z = Math.PI / 2;

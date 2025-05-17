@@ -123,6 +123,8 @@ export function updateFlashlightUI(flashlightState) {
 }
 let currentRound = 1;
 let lastKillCount = 0;
+let lastWaveNumber = 0;
+
 
 function checkForRoundUpdate(enemyManager) {
   const currentWave = enemyManager.waveNumber;
@@ -136,7 +138,7 @@ function checkForRoundUpdate(enemyManager) {
 let totalRotation = 0;
 
 export function showRoundText(roundNumber) {
-  playSound('round_shange');
+  playSound('round_change');
   if (!roundOverlay) return;
 
   totalRotation += 360; // Increase every round
