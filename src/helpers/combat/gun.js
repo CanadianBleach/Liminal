@@ -29,7 +29,7 @@ class Gun {
     });
   }
 
-  update(delta, controls, rapierWorld) {
+  update(delta, controls) {
     this.timeSinceLastShot += delta;
 
     if (!controls.isLocked) return;
@@ -53,6 +53,7 @@ class Gun {
         }, 100);
 
         if (hit) {
+          console.log(hit.collider.handle)
           const collider = hit.collider
           if (collider?.userData?.type === 'enemy') {
             console.log(`Hit enemy ID: ${collider.userData.enemyId}`);

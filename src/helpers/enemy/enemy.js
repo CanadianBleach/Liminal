@@ -63,11 +63,8 @@ export class Enemy {
     const dist = dir.length();
 
     const lookAtPos = new THREE.Vector3().copy(playerPosition);
-lookAtPos.y = this.mesh.position.y;
-this.mesh.lookAt(lookAtPos);
-
-
-console.log('Player pos:', playerPosition.toArray());
+    lookAtPos.y = this.mesh.position.y;
+    this.mesh.lookAt(lookAtPos);
 
     if (dist > this.minDistanceToPlayer) {
       dir.normalize();
