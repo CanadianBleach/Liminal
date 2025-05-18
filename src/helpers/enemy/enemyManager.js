@@ -63,7 +63,7 @@ export class EnemyManager {
         return false;
       }
 
-      enemy.update(delta, this._cameraPos);
+      enemy.update(this._cameraPos, delta); // ✅ correct order
       return true;
     });
   }

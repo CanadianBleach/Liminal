@@ -38,7 +38,7 @@ export class Enemy {
     const geometry = new THREE.PlaneGeometry(1, 2);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.copy(position);
-    mesh.rotation.y = Math.PI;
+    //mesh.rotation.y = Math.PI;
     mesh.castShadow = true;
 
     return mesh;
@@ -61,6 +61,13 @@ export class Enemy {
   update(playerPosition, delta) {
     const dir = new THREE.Vector3().subVectors(playerPosition, this.mesh.position);
     const dist = dir.length();
+
+    const lookAtPos = new THREE.Vector3().copy(playerPosition);
+lookAtPos.y = this.mesh.position.y;
+this.mesh.lookAt(lookAtPos);
+
+
+console.log('Player pos:', playerPosition.toArray());
 
     if (dist > this.minDistanceToPlayer) {
       dir.normalize();
