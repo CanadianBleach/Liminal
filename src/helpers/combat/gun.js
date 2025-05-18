@@ -43,6 +43,15 @@ class Gun {
         const ray = new RAPIER.Ray(origin, direction);
         const hit = this.rapierWorld.castRay(ray, 100, true); // true = solid
 
+        const length = 10; // how far the ray visually extends
+        const arrowHelper = new THREE.ArrowHelper(direction.clone().normalize(), origin.clone(), length, 0xffff00);
+        this.scene.add(arrowHelper);
+
+        // Auto-remove after 0.1s
+        setTimeout(() => {
+          this.scene.remove(arrowHelper);
+        }, 100);
+
         if (hit) {
           const collider = hit.collider
           if (collider?.userData?.type === 'enemy') {
