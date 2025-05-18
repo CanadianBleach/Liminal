@@ -50,16 +50,23 @@ export class Enemy {
   }
 
   _createCollider(position) {
-    const desc = RAPIER.ColliderDesc.cuboid(0.5, 1, 0.01) // Thin Z to match plane
+    // Create a fresh collider descriptor
+    const desc = RAPIER.ColliderDesc.cuboid(0.5, 1, 0.1)
       .setTranslation(position.x, position.y, position.z)
-      .setCollisionGroups(0b01 << 16 | 0b01);
+      .setCollisionGroups(0b01 << 16 | 0b01)
+      .setSensor(false) // Ensure it's a solid collider
+      .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS); // Optional: to get events
 
+    // Create the collider in the world — this returns a *unique* instance
     const collider = this.rapierWorld.createCollider(desc);
+
+    // Tag it uniquely
     collider.userData = {
       type: 'enemy',
       enemyId: this.id,
       enemyRef: this
     };
+
     return collider;
   }
 

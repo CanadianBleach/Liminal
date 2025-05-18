@@ -63,14 +63,13 @@ export async function initMainScene() {
         requestAnimationFrame(animate);
         const delta = clock.getDelta();
 
-        updateFlashlightBattery(delta);
-        updateFlashlight(camera, flashlight, flashlightTarget);
         rapierWorld.step();
 
         updatePlayer(delta, playerState, playerBody, controls, tiltContainer, rapierWorld);
         gunController.update(delta, controls, rapierWorld);
-        enemyManager.update(delta, playerState);
         updateGunAnimation(delta, camera);
+        enemyManager.update(delta, playerBody);
+        updateFlashlight(camera, flashlight, flashlightTarget, delta);
 
         flickeringLights.forEach(light => {
             if (Math.random() < 0.1) light.intensity = 60 + Math.random() * 60;

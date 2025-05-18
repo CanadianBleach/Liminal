@@ -79,7 +79,9 @@ export function updateFlashlightBattery(delta) {
   }
 }
 
-export function updateFlashlight(camera, flashlight, target) {
+export function updateFlashlight(camera, flashlight, target, delta) {
+  updateFlashlightBattery(delta);
+
   const cameraWorldPos = new THREE.Vector3();
   const cameraWorldDir = new THREE.Vector3();
   const offset = new THREE.Vector3();
