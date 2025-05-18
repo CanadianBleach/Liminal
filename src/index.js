@@ -21,8 +21,8 @@ startButton.addEventListener("click", () => {
     }, 1000);
 });
 
-startButton.addEventListener("click", () => {
-    //localStorage.clear();
+clearButton.addEventListener("click", () => {
+    localStorage.clear();
 });
 
 // Upload Button Behavior

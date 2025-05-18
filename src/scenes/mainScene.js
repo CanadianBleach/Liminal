@@ -11,9 +11,8 @@ import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 import { initPlayerPhysics, updatePlayer } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
-import BulletManager from '../helpers/combat/bulletManager.js';
-import { loadGunModel } from '../helpers/player/gunModel.js';
-import { attachGun, updateGunAnimation, setGunMovementState } from '../helpers/player/gunAnimation.js';
+import { loadGunModel } from '../helpers/combat/gunModel.js';
+import { attachGun, updateGunAnimation, setGunMovementState } from '../helpers/combat/gunAnimation.js';
 import Gun from '../helpers/combat/gun.js';
 import { createFlashlight, updateFlashlightBattery, updateFlashlight, flashlightState } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
@@ -30,7 +29,6 @@ export async function initMainScene() {
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
     const playerState = initPlayerState();
-    const enemyManager = new EnemyManager(scene, camera);
     const deathOverlay = setupDeathOverlay();
     setupRoundIndicator();
 
@@ -38,10 +36,10 @@ export async function initMainScene() {
 
     await RAPIER.init();
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
-    const bulletManager = new BulletManager(scene, rapierWorld, enemyManager);
-    const gunController = new Gun(bulletManager, camera);
+    const enemyManager = new EnemyManager(scene, camera, rapierWorld);
+    const gunController = new Gun(camera, scene, rapierWorld, enemyManager.enemies);
 
-    const { playerBody, playerCollider } = initPlayerPhysics(rapierWorld);
+    const { playerBody, playerCollider } = initPlayerPhysics(rapierWorld, playerState);
     const gun = await loadGunModel(camera);
     attachGun(gun);
     await loadGLBModel(scene, rapierWorld);
@@ -67,12 +65,12 @@ export async function initMainScene() {
 
         updateFlashlightBattery(delta);
         updateFlashlight(camera, flashlight, flashlightTarget);
-        enemyManager.update(delta, playerState.health);
+        enemyManager.update(delta);
 
-        updatePlayer(delta, playerState, playerBody, controls, tiltContainer, playerCollider, rapierWorld);
-        bulletManager.update(delta);
-        gunController.update(delta, controls);
-        gunController.handleBulletCollisions(enemyManager.enemies);
+        rapierWorld.step(); // ✅ Move this UP before gun logic
+
+        updatePlayer(delta, playerState, playerBody, controls, tiltContainer, rapierWorld);
+        gunController.update(delta, controls, rapierWorld);
         updateGunAnimation(delta, camera);
 
         flickeringLights.forEach(light => {
@@ -87,6 +85,7 @@ export async function initMainScene() {
             setTimeout(() => window.location.reload(), 2000);
         }
     }
+
 }
 
 function initCore() {
@@ -139,5 +138,5 @@ function setupEvents(camera, renderer, controls) {
 }
 
 function setupLighting(scene) {
-    scene.add(new THREE.AmbientLight(0xffffff, 4));
+    scene.add(new THREE.AmbientLight(0xffffff, 10));
 }
