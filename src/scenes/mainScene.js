@@ -69,7 +69,7 @@ export async function initMainScene() {
 
         updatePlayer(delta, playerState, playerBody, controls, tiltContainer, rapierWorld);
         gunController.update(delta, controls, rapierWorld);
-        enemyManager.update(delta, playerBody);
+        enemyManager.update(delta, playerState);
         updateGunAnimation(delta, camera);
 
         flickeringLights.forEach(light => {

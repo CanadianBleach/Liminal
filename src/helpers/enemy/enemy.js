@@ -22,6 +22,11 @@ export class Enemy {
     this.scene.add(this.mesh);
 
     this.collider = this._createCollider(position);
+
+    this.damageTimer = 0;
+    this.damageInterval = 1.5; // seconds between damage ticks per enemy
+    this.damageAmount = 10;
+    this.attackRadius = 1.5;
   }
 
   _createMesh(position) {
@@ -58,7 +63,7 @@ export class Enemy {
     return collider;
   }
 
-  update(playerPosition, delta) {
+  update(playerPosition, delta, playerState) {
     const dir = new THREE.Vector3().subVectors(playerPosition, this.mesh.position);
     const dist = dir.length();
 
@@ -82,6 +87,25 @@ export class Enemy {
       if (this.hitFlashTime <= 0) {
         this.mesh.material.color.copy(this.originalColor);
       }
+    }
+
+    // Enemy damage logic
+    const distanceToPlayer = this.mesh.position.distanceTo(playerPosition);
+    const damageRadius = 1.5; // enemy hurts player if this close
+    const damageAmount = 10;
+
+    if (distanceToPlayer < damageRadius) {
+      this.damageTimer += delta;
+
+      if (this.damageTimer >= this.damageInterval) {
+        this.damageTimer = 0;
+        playerState.health.current = Math.max(0, playerState.health.current - this.damageAmount);
+        console.log(`Player damaged by enemy ${this.id}, health now:`, playerState.health.current);
+      }
+
+    } else {
+      // reset timer if out of range (optional)
+      playerState.health.damageTimer = 0;
     }
 
   }

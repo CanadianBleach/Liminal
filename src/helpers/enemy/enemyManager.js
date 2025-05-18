@@ -48,7 +48,7 @@ export class EnemyManager {
 
 
 
-  update(delta) {
+  update(delta, playerState) {
     this.spawnTimer += delta;
     if (this.spawnTimer >= this.spawnInterval) {
       this.spawnEnemy();
@@ -63,7 +63,7 @@ export class EnemyManager {
         return false;
       }
 
-      enemy.update(this._cameraPos, delta); // ✅ correct order
+      enemy.update(this._cameraPos, delta, playerState); // ✅ correct order
       return true;
     });
   }
