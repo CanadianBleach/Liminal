@@ -65,7 +65,7 @@ export async function initMainScene() {
 
         updateFlashlightBattery(delta);
         updateFlashlight(camera, flashlight, flashlightTarget);
-        enemyManager.update(delta);
+        enemyManager.update(delta, playerBody);
 
         rapierWorld.step(); // ✅ Move this UP before gun logic
 

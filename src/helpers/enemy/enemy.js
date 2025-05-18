@@ -25,29 +25,24 @@ export class Enemy {
   }
 
   _createMesh(position) {
-    const texture = this.textureUrl instanceof THREE.Texture ? this.textureUrl : null;
-
-    console.log('Loaded texture:', texture.image);
+    const isTexture = this.textureUrl instanceof THREE.Texture;
 
     const material = new THREE.MeshBasicMaterial({
-      map: texture || null,
-      color: texture ? 0xffffff : 0xff00ff, // fallback pink if no texture
-      //transparent: true,
+      map: isTexture ? this.textureUrl : null,
+      color: isTexture ? 0xffffff : 0xff00ff, // fallback magenta
+      transparent: true,
       side: THREE.DoubleSide,
-      //alphaTest: 0.5
+      alphaTest: 0.5
     });
 
     const geometry = new THREE.PlaneGeometry(1, 2);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.copy(position);
     mesh.rotation.y = Math.PI;
-
-    const boxHelper = new THREE.BoxHelper(mesh, 0xffff00);
-    this.scene.add(boxHelper);
+    mesh.castShadow = true;
 
     return mesh;
   }
-
 
   _createCollider(position) {
     const desc = RAPIER.ColliderDesc.cuboid(0.5, 1, 0.01) // Thin Z to match plane
@@ -85,10 +80,6 @@ export class Enemy {
       }
     }
 
-    const lookAtPos = new THREE.Vector3().copy(playerPosition);
-    lookAtPos.y = this.mesh.position.y;
-    this.mesh.lookAt(lookAtPos);
-    this.mesh.rotateY(Math.PI); // Flip since plane geometry faces +Z
   }
 
   takeDamage(amount) {
