@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import * as RAPIER from '@dimforge/rapier3d-compat';
+import { flashDamageOverlay } from '../ui/ui.js';
+
 
 let enemyCounter = 0;
 
@@ -108,6 +110,7 @@ export class Enemy {
         this.damageTimer = 0;
         playerState.health.current = Math.max(0, playerState.health.current - this.damageAmount);
         console.log(`Player damaged by enemy ${this.id}, health now:`, playerState.health.current);
+        flashDamageOverlay(); 
       }
 
     } else {

@@ -20,6 +20,8 @@ import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 import { listener, loadSounds, playSound } from '../helpers/sounds/audio.js';
 import { getUIElements, setupDeathOverlay, updateUI } from '../helpers/ui/ui.js';
 import { setupRoundIndicator } from '../helpers/ui/ui.js';
+import { setupDamageOverlay } from '../helpers/ui/ui.js';
+
 
 
 
@@ -31,6 +33,7 @@ export async function initMainScene() {
     const playerState = initPlayerState();
     const deathOverlay = setupDeathOverlay();
     setupRoundIndicator();
+    setupDamageOverlay(); 
 
     getUIElements();
 

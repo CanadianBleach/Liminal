@@ -63,6 +63,34 @@ export function updateHealthUI(health) {
 export function updateKillsUI(enemyManager) {
   killCounter.textContent = enemyManager.killCount;
 }
+let damageOverlay;
+
+export function setupDamageOverlay() {
+  damageOverlay = document.createElement('div');
+  damageOverlay.id = 'damage-overlay';
+  Object.assign(damageOverlay.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(255, 0, 0, 0.3)',
+    zIndex: '300',
+    opacity: '0',
+    pointerEvents: 'none',
+    transition: 'opacity 0.2s ease',
+  });
+  document.body.appendChild(damageOverlay);
+}
+
+export function flashDamageOverlay() {
+  if (!damageOverlay) return;
+  damageOverlay.style.opacity = '1';
+
+  setTimeout(() => {
+    damageOverlay.style.opacity = '0';
+  }, 250); // short flash
+}
 
 export function setupDeathOverlay() {
   deathOverlay = document.createElement('div');
