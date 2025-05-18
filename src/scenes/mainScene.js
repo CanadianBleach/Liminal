@@ -12,7 +12,7 @@ import { initPlayerPhysics, updatePlayer } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
 import { loadGunModel } from '../helpers/combat/gunModel.js';
-import { attachGun, updateGunAnimation, setGunMovementState } from '../helpers/combat/gunAnimation.js';
+import { attachGun, updateGunAnimation } from '../helpers/combat/gunAnimation.js';
 import Gun from '../helpers/combat/gun.js';
 import { createFlashlight, updateFlashlightBattery, updateFlashlight, flashlightState } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
