@@ -21,6 +21,7 @@ import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 import { listener, loadSounds, playSound } from '../helpers/sounds/audio.js';
 import { getUIElements, setupDeathOverlay, updateUI } from '../helpers/ui/ui.js';
 import { setupRoundIndicator } from '../helpers/ui/ui.js';
+import { setupDeathMessageOverlay, showDeathMessage } from '../helpers/ui/ui.js';
 
 
 
@@ -32,7 +33,10 @@ export async function initMainScene() {
     const playerState = initPlayerState();
     const enemyManager = new EnemyManager(scene, camera);
     const deathOverlay = setupDeathOverlay();
+    let hasDied = false;
+
     setupRoundIndicator();
+    setupDeathMessageOverlay();
 
     getUIElements();
 
@@ -82,10 +86,13 @@ export async function initMainScene() {
         composer.render();
         updateUI(playerState, enemyManager, flashlightState);
 
-        if (playerState.health.current <= 0) {
+        if (playerState.health.current <= 0 && !hasDied) {
+            hasDied = true;
             deathOverlay.style.opacity = '1';
-            setTimeout(() => window.location.reload(), 2000);
+            showDeathMessage();
+            setTimeout(() => window.location.reload(), 5000);
         }
+        
     }
 }
 

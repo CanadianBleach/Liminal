@@ -37,6 +37,7 @@ export function loadSounds(camera) {
   loadSound('gunshot_2', './sounds/gunshot_2.MP3');
   loadSound('gunshot_3', './sounds/gunshot_3.MP3');
   loadSound('round_change', './sounds/round_change.mp3');
+  loadSound('wasted', './sounds/wasted.mp3');
   loadSound('flashlight_click', './sounds/flashlight_click.mp3');
 
 
