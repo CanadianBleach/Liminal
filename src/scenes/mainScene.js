@@ -8,10 +8,8 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 
-import { initPlayerPhysics, updatePlayer } from '../helpers/player/player.js';
+import { PlayerController } from '../helpers/player/playerController.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
-import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
-import { weaponConfigs } from '../helpers/combat/weaponConfigs.js';
 import { createFlashlight, updateFlashlight, flashlightState } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
 
@@ -23,10 +21,9 @@ import { gunManager } from '../helpers/combat/gunManager.js';
 
 export async function initMainScene() {
     playSound('bg_noise');
-    const { scene, camera, renderer, controls, tiltContainer } = initCore();
+    const { scene, camera, gunCamera, renderer, controls, cameraWrapper, tiltContainer } = initCore();
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
-    const playerState = initPlayerState();
     const deathOverlay = setupDeathOverlay();
     setupRoundIndicator();
     setupDamageOverlay();
@@ -36,11 +33,11 @@ export async function initMainScene() {
     await RAPIER.init();
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
     const enemyManager = new EnemyManager(scene, camera, rapierWorld);
+    const player = new PlayerController(rapierWorld, controls, cameraWrapper, tiltContainer);
 
     gunManager.init(camera, scene, rapierWorld, enemyManager.enemies);
     await gunManager.preloadWeapons();
 
-    const { playerBody } = initPlayerPhysics(rapierWorld, playerState);
     await loadGLBModel(scene, rapierWorld);
     setupLighting(scene);
 
@@ -49,7 +46,6 @@ export async function initMainScene() {
     scene.add(flashlight, flashlightTarget);
 
     scene.add(controls.object);
-    setupInputHandlers(playerState, gunManager);
     setupEvents(camera, renderer, controls);
 
     document.body.appendChild(renderer.domElement);
@@ -64,22 +60,35 @@ export async function initMainScene() {
 
         rapierWorld.step();
 
-        updatePlayer(delta, playerState, playerBody, controls, tiltContainer, rapierWorld);
+        player.update(delta);
         gunManager.update(delta, controls);
-        enemyManager.update(delta, playerState);
+        enemyManager.update(delta, player.state);
         updateFlashlight(camera, flashlight, flashlightTarget, delta);
 
         flickeringLights.forEach(light => {
             if (Math.random() < 0.1) light.intensity = 60 + Math.random() * 60;
         });
 
-        composer.render();
-        updateUI(playerState, enemyManager, flashlightState, gunManager.currentGun);
+        updateUI(player.state, enemyManager, flashlightState, gunManager.currentGun);
 
-        if (playerState.health.current <= 0) {
+        if (player.state.health.current <= 0) {
             deathOverlay.style.opacity = '1';
             setTimeout(() => window.location.reload(), 2000);
         }
+
+        // Sync gun camera
+        gunCamera.position.copy(camera.position);
+        gunCamera.quaternion.copy(camera.quaternion);
+
+        // Render world first
+        camera.layers.set(0);
+        renderer.clear();
+        composer.render();
+
+        // Then render weapon over top
+        renderer.clearDepth();
+        gunCamera.layers.set(1);
+        renderer.render(scene, gunCamera);
     }
 }
 
@@ -87,13 +96,22 @@ function initCore() {
     const scene = new THREE.Scene();
     const canvas = document.getElementById("game-canvas");
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.autoClear = false; // ⬅️ Add this
 
     const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.name = 'MainCamera';
+
+    const gunCamera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+    gunCamera.layers.set(1); // Only sees gun layer
+    gunCamera.fov = 75; // or whatever you want for weapon view
+    gunCamera.updateProjectionMatrix();
+
     camera.add(listener);
     loadSounds(camera);
 
     const tiltContainer = new THREE.Object3D();
     tiltContainer.add(camera);
+    tiltContainer.add(gunCamera); // ← Add the gun camera here too
 
     const cameraWrapper = new THREE.Object3D();
     cameraWrapper.add(tiltContainer);
@@ -104,7 +122,7 @@ function initCore() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    return { scene, camera, cameraWrapper, renderer, controls, tiltContainer };
+    return { scene, camera, gunCamera, renderer, controls, cameraWrapper, tiltContainer };
 }
 
 function setupPostProcessingEffects(renderer, scene, camera) {
@@ -133,5 +151,7 @@ function setupEvents(camera, renderer, controls) {
 }
 
 function setupLighting(scene) {
-    scene.add(new THREE.AmbientLight(0xffffff, 10));
+    const light = new THREE.AmbientLight(0xffffff, 10);
+    light.layers.enable(1);
+    scene.add(light);
 }

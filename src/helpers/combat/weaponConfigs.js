@@ -8,7 +8,7 @@ export const weaponConfigs = {
         damage: 22,
         recoil: 0.04,
         modelScale: [0.05, 0.05, 0.05],
-        modelOffset: [0.5, -0.3, -1],
+        modelOffset: [0.5, -0.2, -.7],
         flashSize: [5, 5],
         fireMode: 'auto',
         ammoCapacity: 90,
@@ -28,7 +28,10 @@ export const weaponConfigs = {
         flashSize: [5, 5],
         ammoCapacity: 30,
         clipSize: 5,
-        reloadTime: 3.2
+        reloadTime: 3.2,
+        canADS: true,
+        adsOffset: [0, -0.15, -0.3],
+        adsFOV: 45
     },
     /*     knife: {
             name: 'Knife',

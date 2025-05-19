@@ -23,6 +23,14 @@ export default class GunController extends THREE.Object3D {
     this.fireMode = config.fireMode ?? 'auto'; // 'auto', 'semi', 'burst'
     this.burstCount = config.burstCount ?? 3;
 
+    // ADS
+    this.canADS = config.canADS ?? false;
+    this.adsOffset = config.adsOffset ?? [0, -0.15, -0.3];
+    this.defaultOffset = this.modelOffset;
+    this.adsFOV = config.adsFOV ?? 45;
+    this.defaultFOV = this.camera.fov;
+    this.isAiming = false;
+
     // Ammo
     this.maxAmmo = config.ammoCapacity ?? 90;
     this.clipSize = config.clipSize ?? 30;
@@ -50,30 +58,6 @@ export default class GunController extends THREE.Object3D {
 
     // Burst fire state
     this.burstShotsRemaining = 0;
-
-    document.addEventListener('mousedown', (e) => {
-      if (e.button === 0) {
-        this.isMouseDown = true;
-        this.hasFiredSinceMouseDown = false;
-
-        if (this.fireMode === 'burst') {
-          this.burstShotsRemaining = this.burstCount;
-        }
-      }
-    });
-
-    document.addEventListener('mouseup', (e) => {
-      if (e.button === 0) {
-        this.isMouseDown = false;
-        this.hasFiredSinceMouseDown = false;
-      }
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyR') {
-        this.startReload();
-      }
-    });
   }
 
   async loadModel() {
@@ -83,15 +67,20 @@ export default class GunController extends THREE.Object3D {
     this.model.scale.set(...this.modelScale);
     this.model.position.set(...this.modelOffset);
 
-    // Calculate a target point in front of the camera
+    // Optional: Make the gun face forward
     const target = new THREE.Vector3();
     this.camera.getWorldDirection(target);
     target.multiplyScalar(10).add(this.camera.position);
-
     this.model.lookAt(target);
 
     this.add(this.model);
+
+    // ✅ Set all gun parts to layer 1 (viewmodel only)
+    this.traverse(obj => obj.layers.set(1));
+
     this.attachMuzzleFlash();
+
+    console.log('Loaded gun model at', this.model.position);
   }
 
   attachMuzzleFlash() {
@@ -104,15 +93,19 @@ export default class GunController extends THREE.Object3D {
       depthWrite: false,
       side: THREE.DoubleSide,
     });
+
     const geo = new THREE.PlaneGeometry(...this.flashSize);
     this.muzzleFlashMesh = new THREE.Mesh(geo, mat);
     this.muzzleFlashMesh.position.set(0.375, -0.175, -3);
+    this.muzzleFlashMesh.layers.set(1);
     this.add(this.muzzleFlashMesh);
 
     this.muzzleFlashLight = new THREE.PointLight(0xffaa33, 0, 5);
     this.muzzleFlashLight.position.set(0.375, -0.15, -3);
+    this.muzzleFlashLight.layers.enable(1);
     this.add(this.muzzleFlashLight);
   }
+
 
   update(delta, controls) {
     if (this.isReloading) {
@@ -195,8 +188,8 @@ export default class GunController extends THREE.Object3D {
     this.reloadTimer = 0;
     playSound('reload');
   }
-
   updateAnimation(delta) {
+    // 🔁 Mouse-based sway
     const currentYaw = this.camera.parent?.parent?.rotation.y ?? 0;
     const yawDelta = currentYaw - this.lastYaw;
     const maxSway = 0.25;
@@ -204,21 +197,38 @@ export default class GunController extends THREE.Object3D {
     this.swayOffset.x = THREE.MathUtils.lerp(this.swayOffset.x, targetX, delta * 15);
     this.lastYaw = currentYaw;
 
+    // 🫁 Movement-based bobbing
     this.bobTime += delta * (this.isMoving ? (this.isSprinting ? 16 : 8) : 1.5);
     const bobAmount = this.isMoving ? (this.isSprinting ? 0.1 : 0.05) : 0.01;
     const bobOffsetY = Math.sin(this.bobTime) * bobAmount;
     const bobOffsetX = Math.cos(this.bobTime * 0.5) * bobAmount * 0.5;
 
+    // 🔫 Recoil spring
     this.recoilVelocity += (0 - this.recoilOffset) * 9 * delta;
     this.recoilVelocity *= 0.8;
     this.recoilOffset += this.recoilVelocity;
 
-    this.position.set(
-      this.swayOffset.x + bobOffsetX,
-      -0.15 + bobOffsetY,
-      0.2 + this.recoilOffset
-    );
+    // 🎯 ADS logic
+    const baseOffset = this.isAiming && this.canADS ? this.adsOffset : this.defaultOffset;
+    const baseVec = new THREE.Vector3(...baseOffset);
 
+    // ➕ Combine all animation offsets
+    const animatedOffset = baseVec.clone().add(new THREE.Vector3(
+      this.swayOffset.x + bobOffsetX,
+      bobOffsetY,
+      this.recoilOffset
+    ));
+
+    this.position.lerp(animatedOffset, delta * 10);
+
+    // 🔍 FOV zoom
+    if (this.canADS) {
+      const targetFOV = this.isAiming ? this.adsFOV : this.defaultFOV;
+      this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, targetFOV, delta * 10);
+      this.camera.updateProjectionMatrix();
+    }
+
+    // 🔥 Muzzle flash fade
     if (this.muzzleFlashMesh?.material?.opacity > 0) {
       this.muzzleFlashTimer -= delta;
       const fade = Math.max(0, this.muzzleFlashTimer * 50);
