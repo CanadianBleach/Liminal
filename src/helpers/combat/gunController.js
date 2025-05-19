@@ -5,7 +5,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { playSound } from '../sounds/audio.js';
 
-export default class GunController {
+export default class GunController extends THREE.Object3D {
   constructor(camera, scene, rapierWorld, enemies, currentWeapon) {
     this.camera = camera;
     this.scene = scene;
@@ -102,6 +102,7 @@ export default class GunController {
   }
 
   update(delta, controls) {
+    console.log("gun updating")
     this.timeSinceLastShot += delta;
     this.updateAnimation(delta);
 

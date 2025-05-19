@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
 import { controlFootsteps, playSound } from '../sounds/audio';
+import { gunManager } from '../combat/gunManager.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 const MOVE_SPEED = 3;
@@ -70,7 +71,7 @@ export function initPlayerPhysics(rapierWorld, state) {
   return { playerBody: body, playerCollider: collider };
 }
 
-export function setupInputHandlers(state) {
+export function setupInputHandlers(state, gunManager) {
   document.addEventListener('keydown', (e) => {
     switch (e.code) {
       case 'KeyW': state.keys.forward = true; break;
@@ -78,6 +79,9 @@ export function setupInputHandlers(state) {
       case 'KeyA': state.keys.left = true; break;
       case 'KeyD': state.keys.right = true; break;
       case 'KeyF': toggleFlashlight(); break;
+      case "Digit1": gunManager.switchWeapon('rifle'); break;
+      case "Digit2": gunManager.switchWeapon('awp'); break;
+
       case 'ControlLeft':
         state.isCrouching = true;
         const now = performance.now() / 1000;
@@ -123,7 +127,7 @@ export function setupInputHandlers(state) {
   document.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-export function updatePlayer(delta, state, body, controls, tiltContainer, rapierWorld, gunController) {
+export function updatePlayer(delta, state, body, controls, tiltContainer, rapierWorld) {
   if (!controls.isLocked) return;
 
   const currentVel = body.linvel();
@@ -190,7 +194,7 @@ export function updatePlayer(delta, state, body, controls, tiltContainer, rapier
   const newPos = body.translation();
   controls.object.position.set(newPos.x, newPos.y, newPos.z);
 
-  gunController.setMovementState({
+  gunManager.updateMovementState({
     moving: state.direction.lengthSq() > 0.001,
     sprinting: state.keys.sprint
   })

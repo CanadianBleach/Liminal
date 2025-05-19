@@ -11,7 +11,6 @@ import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 import { initPlayerPhysics, updatePlayer } from '../helpers/player/player.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
 import { initPlayerState, setupInputHandlers } from '../helpers/player/player.js';
-import GunController from '../helpers/combat/gunController.js';
 import { weaponConfigs } from '../helpers/combat/weaponConfigs.js';
 import { createFlashlight, updateFlashlight, flashlightState } from '../helpers/player/flashlight.js';
 import { loadGLBModel, flickeringLights } from '../loaders/modelLoader.js';
@@ -20,9 +19,7 @@ import { listener, loadSounds, playSound } from '../helpers/sounds/audio.js';
 import { getUIElements, setupDeathOverlay, updateUI } from '../helpers/ui/ui.js';
 import { setupRoundIndicator } from '../helpers/ui/ui.js';
 import { setupDamageOverlay } from '../helpers/ui/ui.js';
-
-
-
+import { gunManager } from '../helpers/combat/gunManager.js';
 
 export async function initMainScene() {
     playSound('bg_noise');
@@ -40,15 +37,9 @@ export async function initMainScene() {
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
     const enemyManager = new EnemyManager(scene, camera, rapierWorld);
 
-    const gunController = new GunController(
-        camera,
-        scene,
-        rapierWorld,
-        enemyManager.enemies,
-        weaponConfigs.awp
-    );
-
-    await gunController.loadModel();
+    gunManager.init(camera, scene, rapierWorld, enemyManager.enemies);
+    await gunManager.preloadWeapons();
+    gunManager.switchWeapon('rifle');
 
     const { playerBody } = initPlayerPhysics(rapierWorld, playerState);
     await loadGLBModel(scene, rapierWorld);
@@ -59,7 +50,7 @@ export async function initMainScene() {
     scene.add(flashlight, flashlightTarget);
 
     scene.add(controls.object);
-    setupInputHandlers(playerState);
+    setupInputHandlers(playerState, gunManager);
     setupEvents(camera, renderer, controls);
 
     document.body.appendChild(renderer.domElement);
@@ -74,8 +65,8 @@ export async function initMainScene() {
 
         rapierWorld.step();
 
-        updatePlayer(delta, playerState, playerBody, controls, tiltContainer, rapierWorld, gunController);
-        gunController.update(delta, controls);
+        updatePlayer(delta, playerState, playerBody, controls, tiltContainer, rapierWorld);
+        gunManager.update(delta, controls);
         enemyManager.update(delta, playerState);
         updateFlashlight(camera, flashlight, flashlightTarget, delta);
 
@@ -91,7 +82,6 @@ export async function initMainScene() {
             setTimeout(() => window.location.reload(), 2000);
         }
     }
-
 }
 
 function initCore() {
