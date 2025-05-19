@@ -6,21 +6,36 @@ let killCounter;
 let healthBar;
 let sprintBar;
 
+let ammoCurrent;
+let ammoReserve;
+
 export function getUIElements() {
   batteryBar = document.getElementById('battery-bar');
   killCounter = document.getElementById('kill-count');
   healthBar = document.getElementById('health-bar');
   sprintBar = document.getElementById('sprint-bar');
+  ammoCurrent = document.getElementById('ammo-current');
+  ammoReserve = document.getElementById('ammo-reserve');
 }
 
-export function updateUI(playerState, enemyManager, battery) {
+
+export function updateUI(playerState, enemyManager, battery, currentGun) {
   updateHealthUI(playerState.health);
   updateKillsUI(enemyManager);
   updateFlashlightUI(battery);
   updateSprintUI(playerState);
   updateRoundUI(enemyManager);
   checkForRoundUpdate(enemyManager);
+  updateAmmoUI(currentGun);
 }
+
+
+export function updateAmmoUI(currentGun) {
+  if (!ammoCurrent || !ammoReserve || !currentGun) return;
+  ammoCurrent.textContent = currentGun.currentAmmo;
+  ammoReserve.textContent = currentGun.reserveAmmo;
+}
+
 
 export function updateRoundUI(enemyManager) {
   const roundCounter = document.getElementById('round-count');
@@ -116,19 +131,19 @@ export function setupRoundIndicator() {
   roundOverlay = document.createElement('div');
   roundOverlay.id = 'round-indicator';
   Object.assign(roundOverlay.style, {
-  position: 'fixed',
-  top: '40%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  fontSize: '100px',
-  fontWeight: 'bold',
-  color: 'red',
-  opacity: '0',
-  zIndex: '300',
-  pointerEvents: 'none',
-  transition: 'opacity 0.3s ease, transform 3s ease',
-  transformStyle: 'preserve-3d',
-  perspective: '1000px',
+    position: 'fixed',
+    top: '40%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    fontSize: '100px',
+    fontWeight: 'bold',
+    color: 'red',
+    opacity: '0',
+    zIndex: '300',
+    pointerEvents: 'none',
+    transition: 'opacity 0.3s ease, transform 3s ease',
+    transformStyle: 'preserve-3d',
+    perspective: '1000px',
   });
   document.body.appendChild(roundOverlay);
   return roundOverlay;

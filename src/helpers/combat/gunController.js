@@ -1,26 +1,36 @@
-// GunController.js
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { playSound } from '../sounds/audio.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 export default class GunController extends THREE.Object3D {
-  constructor(camera, rapierWorld, enemies, config) {
+  constructor(camera, rapierWorld, enemies, config = {}) {
     super();
     this.camera = camera;
     this.rapierWorld = rapierWorld;
     this.enemies = enemies;
     this.config = config;
 
-    // Core props
-    this.cooldown = config.fireRate;
-    this.damage = config.damage;
+    // Core config
+    this.cooldown = config.fireRate ?? 0.15;
+    this.damage = config.damage ?? 10;
     this.recoilStrength = config.recoil ?? 0.07;
-    this.modelPath = config.model;
-    this.texturePath = config.texture;
-    this.modelScale = config.modelScale || [1, 1, 1];
-    this.modelOffset = config.modelOffset || [0, 0, 0];
-    this.flashSize = config.muzzleFlashSize || [5, 5];
+    this.modelPath = config.model ?? '/models/fps_mine_sketch_galil.glb';
+    this.texturePath = config.texture ?? '/textures/muzzle1.png';
+    this.modelScale = config.modelScale ?? [0.5, 0.5, 0.5];
+    this.modelOffset = config.modelOffset ?? [0, 1, -2];
+    this.flashSize = config.muzzleFlashSize ?? [5, 5];
+    this.fireMode = config.fireMode ?? 'auto'; // 'auto', 'semi', 'burst'
+    this.burstCount = config.burstCount ?? 3;
+
+    // Ammo
+    this.maxAmmo = config.ammoCapacity ?? 90;
+    this.clipSize = config.clipSize ?? 30;
+    this.currentAmmo = this.clipSize;
+    this.reserveAmmo = this.maxAmmo - this.clipSize;
+    this.isReloading = false;
+    this.reloadTime = config.reloadTime ?? 2.0;
+    this.reloadTimer = 0;
 
     // State
     this.model = null;
@@ -36,12 +46,33 @@ export default class GunController extends THREE.Object3D {
     this.muzzleFlashTimer = 0;
     this.timeSinceLastShot = 0;
     this.isMouseDown = false;
+    this.hasFiredSinceMouseDown = false;
+
+    // Burst fire state
+    this.burstShotsRemaining = 0;
 
     document.addEventListener('mousedown', (e) => {
-      if (e.button === 0) this.isMouseDown = true;
+      if (e.button === 0) {
+        this.isMouseDown = true;
+        this.hasFiredSinceMouseDown = false;
+
+        if (this.fireMode === 'burst') {
+          this.burstShotsRemaining = this.burstCount;
+        }
+      }
     });
+
     document.addEventListener('mouseup', (e) => {
-      if (e.button === 0) this.isMouseDown = false;
+      if (e.button === 0) {
+        this.isMouseDown = false;
+        this.hasFiredSinceMouseDown = false;
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyR') {
+        this.startReload();
+      }
     });
   }
 
@@ -51,6 +82,14 @@ export default class GunController extends THREE.Object3D {
     this.model = gltf.scene;
     this.model.scale.set(...this.modelScale);
     this.model.position.set(...this.modelOffset);
+
+    // Calculate a target point in front of the camera
+    const target = new THREE.Vector3();
+    this.camera.getWorldDirection(target);
+    target.multiplyScalar(10).add(this.camera.position);
+
+    this.model.lookAt(target);
+
     this.add(this.model);
     this.attachMuzzleFlash();
   }
@@ -76,17 +115,61 @@ export default class GunController extends THREE.Object3D {
   }
 
   update(delta, controls) {
+    if (this.isReloading) {
+      this.reloadTimer += delta;
+      if (this.reloadTimer >= this.reloadTime) {
+        const needed = this.clipSize - this.currentAmmo;
+        const toReload = Math.min(needed, this.reserveAmmo);
+        this.currentAmmo += toReload;
+        this.reserveAmmo -= toReload;
+        this.isReloading = false;
+      }
+      return;
+    }
+
     this.timeSinceLastShot += delta;
     this.updateAnimation(delta);
 
     if (!controls.isLocked) return;
-    if (this.isMouseDown && this.timeSinceLastShot >= this.cooldown) {
-      this.handleFire();
-      this.timeSinceLastShot = 0;
+    const readyToFire = this.timeSinceLastShot >= this.cooldown;
+
+    switch (this.fireMode) {
+      case 'auto':
+        if (this.isMouseDown && readyToFire) {
+          this.handleFire();
+          this.timeSinceLastShot = 0;
+        }
+        break;
+
+      case 'semi':
+        if (this.isMouseDown && readyToFire && !this.hasFiredSinceMouseDown) {
+          this.handleFire();
+          this.timeSinceLastShot = 0;
+          this.hasFiredSinceMouseDown = true;
+        }
+        break;
+
+      case 'burst':
+        if (this.burstShotsRemaining > 0 && readyToFire) {
+          this.handleFire();
+          this.timeSinceLastShot = 0;
+          this.burstShotsRemaining--;
+        }
+        break;
     }
   }
 
   handleFire() {
+    if (this.currentAmmo <= 0) {
+      playSound('dry_fire'); // optional sound
+      if (this.fireMode === 'burst') {
+        this.burstShotsRemaining = 0;
+      }
+      return;
+    }
+
+    this.currentAmmo--;
+
     const origin = this.getMuzzleWorldPosition();
     const direction = new THREE.Vector3();
     this.camera.getWorldDirection(direction).normalize();
@@ -106,8 +189,15 @@ export default class GunController extends THREE.Object3D {
     playSound(`gunshot_${variant}`);
   }
 
+  startReload() {
+    if (this.isReloading || this.currentAmmo === this.clipSize || this.reserveAmmo <= 0) return;
+    this.isReloading = true;
+    this.reloadTimer = 0;
+    playSound('reload');
+  }
+
   updateAnimation(delta) {
-    const currentYaw = this.camera.rotation.y;
+    const currentYaw = this.camera.parent?.parent?.rotation.y ?? 0;
     const yawDelta = currentYaw - this.lastYaw;
     const maxSway = 0.25;
     const targetX = THREE.MathUtils.clamp(-yawDelta * 2, -maxSway, maxSway);

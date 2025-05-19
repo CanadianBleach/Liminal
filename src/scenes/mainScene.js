@@ -74,7 +74,7 @@ export async function initMainScene() {
         });
 
         composer.render();
-        updateUI(playerState, enemyManager, flashlightState);
+        updateUI(playerState, enemyManager, flashlightState, gunManager.currentGun);
 
         if (playerState.health.current <= 0) {
             deathOverlay.style.opacity = '1';
