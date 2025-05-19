@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight';
 import { controlFootsteps, playSound } from '../sounds/audio';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { setGunMovementState } from '../combat/gunAnimation';
 
 const MOVE_SPEED = 3;
 const MOVEMENT_INTERPOLATION = 6;
@@ -124,7 +123,7 @@ export function setupInputHandlers(state) {
   document.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-export function updatePlayer(delta, state, body, controls, tiltContainer, rapierWorld) {
+export function updatePlayer(delta, state, body, controls, tiltContainer, rapierWorld, gunController) {
   if (!controls.isLocked) return;
 
   const currentVel = body.linvel();
@@ -191,10 +190,10 @@ export function updatePlayer(delta, state, body, controls, tiltContainer, rapier
   const newPos = body.translation();
   controls.object.position.set(newPos.x, newPos.y, newPos.z);
 
-  setGunMovementState({
-    moving: state.velocityTarget.lengthSq() > 0.001,
+  gunController.setMovementState({
+    moving: state.direction.lengthSq() > 0.001,
     sprinting: state.keys.sprint
-  });
+  })
 
   const isMoving = state.direction.lengthSq() > 0.1;
   let footstepRate = 1;
