@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { playSound } from '../sounds/audio.js';
+import GunController from './gunController.js';
 import { weaponConfigs } from './weaponConfigs.js';
 
 class GunManager {
@@ -32,27 +33,23 @@ class GunManager {
     async preloadWeapons() {
         const loadPromises = Object.entries(this.weaponConfigs).map(
             async ([key, config]) => {
-                const gltf = await this.loader.loadAsync(config.model);
-                const gun = this.setupGun(gltf, config);
+                const gun = await this.setupGun(config); // await setup
                 this.guns[key] = gun;
             }
         );
         await Promise.all(loadPromises);
+        setTimeout(() => gunManager.switchWeapon('rifle'), 0);
     }
 
-    setupGun(gltf, config) {
-        const gun = new THREE.Object3D();
-        const model = gltf.scene;
-        model.scale.set(...(config.modelScale || [1, 1, 1]));
-        model.position.set(...(config.modelOffset || [0, 0, 0]));
-        gun.add(model);
+    async setupGun(config) {
+        const gun = new GunController(this.camera, this.rapierWorld, this.enemies, config);
+        await gun.loadModel(); // ensure model is fully loaded
         gun.visible = false;
-        this.camera.add(gun);
+        this.camera.add(gun); // only add after model is in
         return gun;
     }
 
     switchWeapon(key) {
-        console.log(this.currentGun)
         if (this.currentGun) {
             this.currentGun.visible = false;
         }
@@ -61,11 +58,11 @@ class GunManager {
             this.currentGun.visible = true;
             playSound('weapon_switch');
         }
-        console.log(this.currentGun);
+
+        console.log(this.currentGun.config.name);
     }
 
     update(delta, controls) {
-        console.log(this.currentGun)
         if (this.currentGun?.update) {
             this.currentGun.update(delta, controls);
         }

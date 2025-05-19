@@ -1,31 +1,28 @@
 // GunController.js
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import RAPIER from '@dimforge/rapier3d-compat';
 import { playSound } from '../sounds/audio.js';
+import RAPIER from '@dimforge/rapier3d-compat';
 
 export default class GunController extends THREE.Object3D {
-  constructor(camera, scene, rapierWorld, enemies, currentWeapon) {
+  constructor(camera, rapierWorld, enemies, config) {
+    super();
     this.camera = camera;
-    this.scene = scene;
     this.rapierWorld = rapierWorld;
     this.enemies = enemies;
-    this.currentWeapon = currentWeapon;
+    this.config = config;
 
-    // Config-driven properties
-    this.cooldown = currentWeapon.fireRate;
-    this.damage = currentWeapon.damage;
-    this.recoilStrength = currentWeapon.recoil ?? 0.07;
-    this.modelPath = currentWeapon.model;
-    this.muzzleTexture = currentWeapon.texture;
-    this.flashSize = currentWeapon.muzzleFlashSize || [5, 5];
-    this.modelScale = currentWeapon.modelScale || [0.5, 0.5, 0.5];
-    this.modelOffset = currentWeapon.modelOffset || [0, 0, 0];
+    // Core props
+    this.cooldown = config.fireRate;
+    this.damage = config.damage;
+    this.recoilStrength = config.recoil ?? 0.07;
+    this.modelPath = config.model;
+    this.texturePath = config.texture;
+    this.modelScale = config.modelScale || [1, 1, 1];
+    this.modelOffset = config.modelOffset || [0, 0, 0];
+    this.flashSize = config.muzzleFlashSize || [5, 5];
 
     // State
-    this.gunWrapper = new THREE.Object3D();
-    this.camera.add(this.gunWrapper);
     this.model = null;
     this.muzzleFlashMesh = null;
     this.muzzleFlashLight = null;
@@ -49,40 +46,17 @@ export default class GunController extends THREE.Object3D {
   }
 
   async loadModel() {
-    const ext = this.modelPath.split('.').pop().toLowerCase();
-    let loader, model;
-
-    switch (ext) {
-      case 'glb':
-      case 'gltf':
-        loader = new GLTFLoader();
-        model = await loader.loadAsync(this.modelPath);
-        model = model.scene;
-        break;
-
-      case 'fbx':
-        loader = new FBXLoader();
-        model = await loader.loadAsync(this.modelPath);
-        break;
-
-      default:
-        console.error(`Unsupported model type: .${ext}`);
-        return;
-    }
-
-    // Apply scale and position to the model
-    model.scale.set(...this.modelScale);
-    model.rotation.set(0, 160, 0)
-    model.position.set(...this.modelOffset);
-
-    this.model = model;
-    this.gunWrapper.add(this.model);
-
+    const loader = new GLTFLoader();
+    const gltf = await loader.loadAsync(this.modelPath);
+    this.model = gltf.scene;
+    this.model.scale.set(...this.modelScale);
+    this.model.position.set(...this.modelOffset);
+    this.add(this.model);
     this.attachMuzzleFlash();
   }
 
   attachMuzzleFlash() {
-    const texture = new THREE.TextureLoader().load(this.muzzleTexture);
+    const texture = new THREE.TextureLoader().load(this.texturePath);
     const mat = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
@@ -94,15 +68,14 @@ export default class GunController extends THREE.Object3D {
     const geo = new THREE.PlaneGeometry(...this.flashSize);
     this.muzzleFlashMesh = new THREE.Mesh(geo, mat);
     this.muzzleFlashMesh.position.set(0.375, -0.175, -3);
-    this.gunWrapper.add(this.muzzleFlashMesh);
+    this.add(this.muzzleFlashMesh);
 
     this.muzzleFlashLight = new THREE.PointLight(0xffaa33, 0, 5);
     this.muzzleFlashLight.position.set(0.375, -0.15, -3);
-    this.gunWrapper.add(this.muzzleFlashLight);
+    this.add(this.muzzleFlashLight);
   }
 
   update(delta, controls) {
-    console.log("gun updating")
     this.timeSinceLastShot += delta;
     this.updateAnimation(delta);
 
@@ -150,8 +123,8 @@ export default class GunController extends THREE.Object3D {
     this.recoilVelocity *= 0.8;
     this.recoilOffset += this.recoilVelocity;
 
-    this.gunWrapper.position.set(
-      0 + this.swayOffset.x + bobOffsetX,
+    this.position.set(
+      this.swayOffset.x + bobOffsetX,
       -0.15 + bobOffsetY,
       0.2 + this.recoilOffset
     );
@@ -169,17 +142,15 @@ export default class GunController extends THREE.Object3D {
   }
 
   triggerMuzzleFlash() {
-    if (!this.muzzleFlashMesh) return;
     this.muzzleFlashMesh.material.opacity = 1;
     this.muzzleFlashMesh.rotation.z = Math.random() * Math.PI * 2;
     const scale = THREE.MathUtils.randFloat(0.3, 0.6);
     this.muzzleFlashMesh.scale.setScalar(scale);
     this.muzzleFlashTimer = 0.05;
-    if (this.muzzleFlashLight) this.muzzleFlashLight.intensity = 10;
+    this.muzzleFlashLight.intensity = 10;
   }
 
   getMuzzleWorldPosition() {
-    if (!this.muzzleFlashMesh) return null;
     const worldPos = new THREE.Vector3();
     this.muzzleFlashMesh.getWorldPosition(worldPos);
     return worldPos;

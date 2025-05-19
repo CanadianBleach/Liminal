@@ -39,7 +39,6 @@ export async function initMainScene() {
 
     gunManager.init(camera, scene, rapierWorld, enemyManager.enemies);
     await gunManager.preloadWeapons();
-    gunManager.switchWeapon('rifle');
 
     const { playerBody } = initPlayerPhysics(rapierWorld, playerState);
     await loadGLBModel(scene, rapierWorld);
