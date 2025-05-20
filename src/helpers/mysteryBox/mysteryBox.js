@@ -18,6 +18,8 @@ export class MysteryBox {
         this.pendingWeapon = null;
         this.pendingTimeout = null;
 
+        this.cost = 50;
+
         const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshStandardMaterial({ color: 0x00ccff });
         this.mesh = new THREE.Mesh(geometry, material);
@@ -40,7 +42,7 @@ export class MysteryBox {
     onInteract() {
         const now = performance.now() / 1000;
 
-        // If a weapon is waiting to be picked up
+        // ✅ Claim weapon if one is waiting
         if (this.pendingWeapon) {
             this.player.pickupWeapon(this.pendingWeapon);
             this.pendingWeapon = null;
@@ -49,10 +51,20 @@ export class MysteryBox {
             return;
         }
 
-        // If rolling or on cooldown
+        // ❌ Block if cooling down or rolling
         if (this.rolling || (now - (this.lastUseTime || 0)) < this.cooldownTime) {
             return;
         }
+
+        // 💰 Require 100 points to roll
+        if (this.player.state.points < this.cost) {
+            console.log("Not enough points to use the mystery box.");
+            return;
+        }
+
+        // ✅ Deduct cost
+        this.player.state.score -= cost;
+        console.log(`100 points deducted. Remaining: ${this.player.state.score}`);
 
         this.rolling = true;
         this.lastUseTime = now;
@@ -80,11 +92,10 @@ export class MysteryBox {
             this.pendingWeapon = selectedWeapon;
             this.rolling = false;
 
-            // Timeout to auto-cancel if not picked
             this.pendingTimeout = setTimeout(() => {
                 console.log("Mystery box weapon expired.");
                 this.pendingWeapon = null;
-            }, 5000); // 5 seconds to claim
+            }, 5000);
         }, rollDuration);
     }
 }
