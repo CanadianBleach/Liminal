@@ -1,74 +1,69 @@
 import * as THREE from 'three';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 import { flashDamageOverlay } from '../ui/ui.js';
-
+import { base64ToBlob } from '../ui/imageLoader.js';
 
 let enemyCounter = 0;
 
 export class Enemy {
-  constructor(scene, rapierWorld, position = new THREE.Vector3(0, 1.5, -5), textureUrl = null) {
+  constructor(scene, rapierWorld, position = new THREE.Vector3(0, 1.5, -5), texture = null, config = {}) {
     this.scene = scene;
     this.rapierWorld = rapierWorld;
-    this.health = 100;
-    this.alive = true;
     this.id = enemyCounter++;
-    this.textureUrl = textureUrl;
+    this.alive = true;
 
-    this.originalColor = new THREE.Color(0xffffff);
+    this.health = config.health ?? 100;
+    this.moveSpeed = config.speed ?? 1.5;
+    this.damageAmount = config.damage ?? 10;
+    this.attackRadius = config.attackRadius ?? 1.5;
+    this.pointValue = config.pointValue ?? 50;
+    this.size = config.size ?? 1;
+
     this.hitFlashTime = 0;
-
-    this.moveSpeed = 1.5;
+    this.originalColor = new THREE.Color(0xffffff);
+    this.damageInterval = 1.5;
+    this.damageTimer = 0;
     this.minDistanceToPlayer = 1;
 
+    this.texture = texture;
     this.mesh = this._createMesh(position);
     this.scene.add(this.mesh);
 
     this.collider = this._createCollider(position);
 
-    this.damageTimer = 0;
-    this.damageInterval = 1.5; // seconds between damage ticks per enemy
-    this.damageAmount = 10;
-    this.attackRadius = 1.5;
+    this.onDeathEffect = config.onDeathEffect ?? null;
   }
 
   _createMesh(position) {
-    const isTexture = this.textureUrl instanceof THREE.Texture;
-
     const material = new THREE.MeshBasicMaterial({
-      map: isTexture ? this.textureUrl : null,
-      color: isTexture ? 0xffffff : 0xff00ff, // fallback magenta
+      map: this.texture,
+      color: this.texture ? 0xffffff : 0xff00ff,
       transparent: true,
       side: THREE.DoubleSide,
       alphaTest: 0.5
     });
 
-    const geometry = new THREE.PlaneGeometry(1, 2);
+    const geometry = new THREE.PlaneGeometry(1 * this.size, 2 * this.size);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.copy(position);
-    //mesh.rotation.y = Math.PI;
     mesh.castShadow = true;
 
     return mesh;
   }
 
   _createCollider(position) {
-    // Create a fresh collider descriptor
-    const desc = RAPIER.ColliderDesc.cuboid(0.5, 1, 0.1)
+    const desc = RAPIER.ColliderDesc.cuboid(0.5 * this.size, 1 * this.size, 0.05)
       .setTranslation(position.x, position.y, position.z)
       .setCollisionGroups(0b01 << 16 | 0b01)
-      .setSensor(false) // Ensure it's a solid collider
-      .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS); // Optional: to get events
+      .setSensor(false)
+      .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
 
-    // Create the collider in the world — this returns a *unique* instance
     const collider = this.rapierWorld.createCollider(desc);
-
-    // Tag it uniquely
     collider.userData = {
       type: 'enemy',
       enemyId: this.id,
       enemyRef: this
     };
-
     return collider;
   }
 
@@ -98,26 +93,18 @@ export class Enemy {
       }
     }
 
-    // Enemy damage logic
     const distanceToPlayer = this.mesh.position.distanceTo(playerPosition);
-    const damageRadius = 1.5; // enemy hurts player if this close
-    const damageAmount = 10;
-
-    if (distanceToPlayer < damageRadius) {
+    if (distanceToPlayer < this.attackRadius) {
       this.damageTimer += delta;
-
       if (this.damageTimer >= this.damageInterval) {
         this.damageTimer = 0;
         playerState.health.current = Math.max(0, playerState.health.current - this.damageAmount);
         console.log(`Player damaged by enemy ${this.id}, health now:`, playerState.health.current);
         flashDamageOverlay(); 
       }
-
     } else {
-      // reset timer if out of range (optional)
-      playerState.health.damageTimer = 0;
+      this.damageTimer = 0;
     }
-
   }
 
   takeDamage(amount) {
