@@ -63,7 +63,7 @@ export class MysteryBox {
         }
 
         // ✅ Deduct cost
-        this.player.state.score -= cost;
+        this.player.state.score -= this.cost;
         console.log(`100 points deducted. Remaining: ${this.player.state.score}`);
 
         this.rolling = true;

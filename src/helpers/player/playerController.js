@@ -69,7 +69,7 @@ export class PlayerController {
         activeSlot: 0 // index of currently active gun slot
       },
       killCount: 0,
-      score: 0,
+      score: 40,
       interactPromptVisible: false,
       interactTarget: null,
     };
