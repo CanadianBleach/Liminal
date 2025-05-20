@@ -60,13 +60,13 @@ export const weaponConfigs = {
         recoil: 0.08,
         fireMode: 'semi',
         modelScale: [0.05, 0.05, 0.05],
-        modelOffset: [0.2, -0.2, -0.3],
+        modelOffset: [0.2, -0.2, -0.2],
         flashSize: [3, 3],
         ammoCapacity: 60,
         clipSize: 12,
         reloadTime: 2.0,
         canADS: true,
-        adsOffset: [0, -0.15, -0.3],
+        //adsOffset: [0, -0.15, -0.3],
         adsFOV: 60
     },
     model680: {
