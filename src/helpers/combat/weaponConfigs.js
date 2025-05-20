@@ -1,8 +1,7 @@
-// weaponConfigs.js
 export const weaponConfigs = {
-    rifle: {
+    galil: {
         name: 'Galil',
-        model: '/models/ak.glb',
+        model: '/models/galil.glb',
         texture: '/textures/muzzle1.png',
         mysteryBoxEligible: true,
         fireRate: 0.09,
@@ -15,6 +14,22 @@ export const weaponConfigs = {
         ammoCapacity: 1000,
         clipSize: 100,
         reloadTime: 2.4
+    },
+    ak: {
+        name: 'AK-47',
+        model: '/models/ak.glb',
+        texture: '/textures/muzzle1.png',
+        mysteryBoxEligible: true,
+        fireRate: 0.1,
+        damage: 28,
+        recoil: 0.06,
+        fireMode: 'auto',
+        modelScale: [0.05, 0.05, 0.05],
+        modelOffset: [0.25, -0.25, -0.3],
+        flashSize: [5, 5],
+        ammoCapacity: 600,
+        clipSize: 30,
+        reloadTime: 2.6
     },
     awp: {
         name: 'AWP',
@@ -37,23 +52,71 @@ export const weaponConfigs = {
     },
     m1911: {
         name: 'M1911',
-        model: '/models/awp.glb',
+        model: '/models/m1911.glb', // Update if you get a pistol model
         texture: '/textures/muzzle1.png',
         mysteryBoxEligible: true,
-        fireRate: 1.5,
-        damage: 95,
-        recoil: 0.15,
+        fireRate: 0.4,
+        damage: 15,
+        recoil: 0.08,
         fireMode: 'semi',
         modelScale: [0.05, 0.05, 0.05],
-        modelOffset: [0.5, -0.3, -1],
-        flashSize: [5, 5],
-        ammoCapacity: 30,
-        clipSize: 5,
-        reloadTime: 3.2,
+        modelOffset: [0.2, -0.2, -0.3],
+        flashSize: [3, 3],
+        ammoCapacity: 60,
+        clipSize: 12,
+        reloadTime: 2.0,
         canADS: true,
         adsOffset: [0, -0.15, -0.3],
-        adsFOV: 45
+        adsFOV: 60
     },
-    knife: {
+    model680: {
+        name: 'Model 680',
+        model: '/models/model680.glb', // or reuse your existing shotgun model
+        texture: '/textures/muzzle1.png',
+        mysteryBoxEligible: true,
+        fireRate: 1.0,
+        damage: 80,
+        recoil: 0.3,
+        fireMode: 'pump',
+        modelScale: [0.05, 0.05, 0.05],
+        modelOffset: [0.3, -0.3, -0.5],
+        flashSize: [6, 6],
+        ammoCapacity: 40,
+        clipSize: 6,
+        reloadTime: 3.2,
+        canADS: true,
+        adsOffset: [0, -0.1, -0.3],
+        adsFOV: 58
+    },
+    uzi: {
+        name: 'Uzi',
+        model: '/models/uzi.glb',
+        texture: '/textures/muzzle1.png',
+        mysteryBoxEligible: true,
+        fireRate: 0.1,
+        damage: 12,
+        recoil: 0.03,
+        fireMode: 'auto',
+        modelScale: [0.05, 0.05, 0.05],
+        modelOffset: [0.15, -0.15, -0.25],
+        flashSize: [3, 3],
+        ammoCapacity: 300,
+        clipSize: 30,
+        reloadTime: 2.0
+    },
+    karambit: {
+        name: 'Karambit',
+        model: '/models/karambit.glb', // Use placeholder if needed
+        texture: null,
+        mysteryBoxEligible: false,
+        fireRate: 1.0,
+        damage: 100,
+        recoil: 0,
+        fireMode: 'melee',
+        modelScale: [0.05, 0.05, 0.05],
+        modelOffset: [0.1, -0.3, -0.2],
+        clipSize: 1,
+        ammoCapacity: 1,
+        reloadTime: 0
     }
 };

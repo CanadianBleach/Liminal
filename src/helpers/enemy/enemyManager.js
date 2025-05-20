@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import { Enemy } from './enemy.js';
 import { base64ToBlob } from '../ui/imageLoader.js';
 import { playSound } from '../sounds/audio.js';
+import { enemyTypes } from './enemyConfig.js';
 
 
 export class EnemyManager {
   constructor(scene, camera, rapierWorld, playerController) {
     this.playerController = playerController;
-    this.roundStartDelay = 3;
+    this.roundStartDelay = 10;
     this.roundDelayTimer = 0;
     this.readyToSpawn = false;
 
@@ -28,43 +29,8 @@ export class EnemyManager {
     this.enemiesSpawnedThisRound = 0;
     this.killsThisRound = 0;
     this.killCount = 0; // Local tracker to avoid syncing back to player each time
-
-    this.enemyTypes = {
-      scary: {
-        health: 100,
-        speed: 1.5,
-        damage: 10,
-        pointValue: 50,
-        size: 1,
-        texture: '/textures/scary.png',
-        tier: 1,
-        onDeathEffect: 'blood_splatter'
-      },
-
-      nugget: {
-        health: 100,
-        speed: 1.5,
-        damage: 10,
-        pointValue: 50,
-        size: 1,
-        texture: '/textures/shadow.png', // ✅ your new image
-        tier: 1,
-        onDeathEffect: 'blood_splatter'
-      },
-
-      custom: {
-        health: 100,
-        speed: 1.5,
-        damage: 10,
-        pointValue: 75,
-        size: 1,
-        texture: null, // placeholder, we’ll override it dynamically
-        tier: 1,
-        onDeathEffect: 'blood_splatter'
-      }
-      // Add more types later
-    };
   }
+
   spawnEnemy() {
     if (!this.waveInProgress) return;
 
@@ -75,7 +41,7 @@ export class EnemyManager {
 
     const pos = new THREE.Vector3(Math.random() * 20 - 10, 1.5, Math.random() * 20 - 10);
 
-    const eligibleTypes = Object.entries(this.enemyTypes)
+    const eligibleTypes = Object.entries(enemyTypes)
       .filter(([_, cfg]) => cfg.tier <= this.waveNumber);
 
     if (eligibleTypes.length === 0) return;

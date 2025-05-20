@@ -65,7 +65,7 @@ export class PlayerController {
       },
       inventory: {
         slots: [null, null], // slot 0 and 1 for guns
-        melee: weaponConfigs.knife,
+        melee: weaponConfigs.karambit,
         activeSlot: 0 // index of currently active gun slot
       },
       killCount: 0,
@@ -76,7 +76,7 @@ export class PlayerController {
 
     this.state.inventory.slots[0] = 'rifle';
     this.state.inventory.activeSlot = 0;
-    gunManager.switchWeapon('rifle');
+    gunManager.switchWeapon('m1911');
     this.initPhysics();
     this.setupInputHandlers();
   }
@@ -189,7 +189,6 @@ export class PlayerController {
 
   switchSlot(index) {
     if (index === -1) {
-      // Knife override
       const knifeKey = this.state.inventory.melee;
       this.state.inventory.activeSlot = -1;
       gunManager.switchWeapon(knifeKey);
@@ -197,38 +196,49 @@ export class PlayerController {
       return;
     }
 
+    this.state.inventory.activeSlot = index;
+
     const weaponKey = this.state.inventory.slots[index];
     if (!weaponKey) {
-      console.log(`No weapon in slot ${index + 1}`);
+      gunManager.switchWeapon(null); // ❗ Hide weapon if slot is empty
+      console.log(`Switched to empty slot ${index + 1}`);
       return;
     }
 
-    this.state.inventory.activeSlot = index;
     gunManager.switchWeapon(weaponKey);
     console.log(`Switched to slot ${index + 1}: ${weaponKey}`);
   }
 
   initializeLoadout() {
-    this.state.inventory.slots[0] = 'rifle';
+    this.state.inventory.slots[0] = 'm1911';
     this.state.inventory.activeSlot = 0;
-    gunManager.switchWeapon('rifle');
+    gunManager.switchWeapon('m1911');
   }
 
   pickupWeapon(weaponKey) {
-    const { slots, activeSlot } = this.state.inventory;
+    const inventory = this.state.inventory;
 
-    // Don't pick up if we already have it
-    if (slots.includes(weaponKey)) {
-      console.log(`${weaponKey} is already in inventory`);
+    // Can't pick up if you're holding the knife
+    if (inventory.activeSlot === -1) {
+      console.warn("Switch to a gun slot before taking a weapon.");
       return;
     }
 
-    // Replace current active slot with new weapon
-    slots[activeSlot] = weaponKey;
+    // Don't pick up if you already have it
+    if (inventory.slots.includes(weaponKey)) {
+      console.log(`${weaponKey} is already in your inventory.`);
+      return;
+    }
+
+    console.log(inventory.activeSlot);
+
+    // Replace the currently held gun
+    inventory.slots[inventory.activeSlot] = weaponKey;
     gunManager.switchWeapon(weaponKey);
 
-    console.log(`Picked up: ${weaponKey} in slot ${activeSlot + 1}`);
+    console.log(`Replaced slot ${inventory.activeSlot + 1} with ${weaponKey}`);
   }
+
 
   update(delta) {
     if (!this.controls.isLocked) return;

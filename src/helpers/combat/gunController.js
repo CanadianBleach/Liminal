@@ -148,7 +148,43 @@ export default class GunController extends THREE.Object3D {
           this.burstShotsRemaining--;
         }
         break;
+
+      case 'pump':
+        if (this.isMouseDown && readyToFire && !this.hasFiredSinceMouseDown) {
+          this.handleFire();
+          this.timeSinceLastShot = 0;
+          this.hasFiredSinceMouseDown = true;
+        }
+        break;
+
+      case 'melee':
+        if (this.isMouseDown && readyToFire && !this.hasFiredSinceMouseDown) {
+          this.handleMelee();
+          this.timeSinceLastShot = 0;
+          this.hasFiredSinceMouseDown = true;
+        }
+        break;
     }
+  }
+
+  handleMelee() {
+    const origin = this.camera.position.clone();
+    const direction = new THREE.Vector3();
+    origin.add(direction.clone().multiplyScalar(.9)); // Adjust distance if needed
+    this.camera.getWorldDirection(direction);
+
+    const ray = new RAPIER.Ray(origin, direction);
+    const hit = this.rapierWorld.castRay(ray, 2.0, true); // Short melee range
+
+    if (hit) {
+      const collider = hit.collider;
+      if (collider?.userData?.type === 'enemy') {
+        collider.userData.enemyRef.takeDamage(this.config.damage);
+        console.log("Melee hit:", collider.userData);
+      }
+    }
+
+    playSound('knife_swing'); // Add this to your sound list
   }
 
   handleFire() {

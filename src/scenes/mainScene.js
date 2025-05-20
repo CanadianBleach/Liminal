@@ -35,7 +35,7 @@ export async function initMainScene() {
     await RAPIER.init();
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
     const player = new PlayerController(rapierWorld, controls, cameraWrapper, tiltContainer);
-        const mysteryBox = new MysteryBox(scene, rapierWorld, new THREE.Vector3(2, 1, 0), player);
+    const mysteryBox = new MysteryBox(scene, rapierWorld, new THREE.Vector3(2, 1, 0), player);
     const enemyManager = new EnemyManager(scene, camera, rapierWorld, player);
     await gunManager.init(camera, scene, rapierWorld, enemyManager.enemies, weaponConfigs);
 
