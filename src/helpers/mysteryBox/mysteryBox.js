@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { weaponConfigs } from '../combat/weaponConfigs';
+import { selectBoxSpawnByChance } from './mysteryBoxSpawns';
 
 export class MysteryBox {
-    constructor(scene, rapierWorld, position, player) {
+    constructor(scene, rapierWorld, player) {
         this.scene = scene;
         this.rapierWorld = rapierWorld;
-        this.position = position;
+        this.boxSpawn = selectBoxSpawnByChance();
+        console.log(this.position)
         this.player = player;
 
         this.cooldown = 0;
@@ -19,11 +21,11 @@ export class MysteryBox {
         const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshStandardMaterial({ color: 0x00ccff });
         this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.position.copy(position);
+        this.mesh.position.copy(this.boxSpawn.position);
         scene.add(this.mesh);
 
         const colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5)
-            .setTranslation(position.x, position.y, position.z)
+            .setTranslation(this.boxSpawn.position.x, this.boxSpawn.position.y, this.boxSpawn.position.z)
             .setSensor(true)
             .setCollisionGroups(0b0011 << 16 | 0b0001);
 
