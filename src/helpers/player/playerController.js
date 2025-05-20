@@ -158,6 +158,10 @@ export class PlayerController {
       .setDensity(1.0);
 
     this.collider = this.rapierWorld.createCollider(colliderDesc, this.body);
+    this.collider.userData = {
+      type: 'player',
+      playerRef: this // optional: reference back to the controller
+    };
   }
 
   update(delta) {

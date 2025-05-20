@@ -38,11 +38,11 @@ class GunManager {
             }
         );
         await Promise.all(loadPromises);
-        setTimeout(() => gunManager.switchWeapon('rifle'), 0);
+        gunManager.switchWeapon('rifle');
     }
 
     async setupGun(config) {
-        const gun = new GunController(this.camera, this.rapierWorld, this.enemies, config);
+        const gun = new GunController(this.camera, this.scene, this.rapierWorld, this.enemies, config);
         await gun.loadModel(); // ensure model is fully loaded
         gun.visible = false;
         this.camera.add(gun); // only add after model is in
