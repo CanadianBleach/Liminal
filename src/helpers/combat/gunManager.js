@@ -17,11 +17,13 @@ class GunManager {
         this.loader = new GLTFLoader();
     }
 
-    init(camera, scene, rapierWorld, enemies) {
+    async init(camera, scene, rapierWorld, enemies) {
         this.camera = camera;
         this.scene = scene;
         this.rapierWorld = rapierWorld;
         this.enemies = enemies;
+
+        await gunManager.preloadWeapons();
     }
 
     updateMovementState({ moving, sprinting }) {
@@ -38,7 +40,6 @@ class GunManager {
             }
         );
         await Promise.all(loadPromises);
-        gunManager.switchWeapon('rifle');
     }
 
     async setupGun(config) {
@@ -58,8 +59,6 @@ class GunManager {
             this.currentGun.visible = true;
             playSound('weapon_switch');
         }
-
-        console.log(this.currentGun.config.name);
     }
 
     update(delta, controls) {

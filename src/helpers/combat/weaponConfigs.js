@@ -19,6 +19,7 @@ export const weaponConfigs = {
         name: 'AWP',
         model: '/models/awp.glb',
         texture: '/textures/muzzle1.png',
+        mysteryBoxEligible: true,
         fireRate: 1.5,
         damage: 95,
         recoil: 0.15,
@@ -37,6 +38,7 @@ export const weaponConfigs = {
         name: 'M1911',
         model: '/models/awp.glb',
         texture: '/textures/muzzle1.png',
+        mysteryBoxEligible: true,
         fireRate: 1.5,
         damage: 95,
         recoil: 0.15,
@@ -51,4 +53,6 @@ export const weaponConfigs = {
         adsOffset: [0, -0.15, -0.3],
         adsFOV: 45
     },
+    knife: {
+    }
 };

@@ -1,10 +1,10 @@
-
 import * as THREE from 'three';
 import { toggleFlashlight } from './flashlight.js';
 import { controlFootsteps, playSound } from '../sounds/audio.js';
 import { gunManager } from '../combat/gunManager.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { hideInteractPrompt, showInteractPrompt } from '../ui/ui.js';
+import { weaponConfigs } from '../combat/weaponConfigs.js';
 
 export class PlayerController {
   constructor(rapierWorld, controls, cameraWrapper, tiltContainer) {
@@ -63,12 +63,20 @@ export class PlayerController {
         damageInterval: 3,
         damageTimer: 0
       },
+      inventory: {
+        slots: [null, null], // slot 0 and 1 for guns
+        melee: weaponConfigs.knife,
+        activeSlot: 0 // index of currently active gun slot
+      },
       killCount: 0,
       score: 0,
       interactPromptVisible: false,
       interactTarget: null,
     };
 
+    this.state.inventory.slots[0] = 'rifle';
+    this.state.inventory.activeSlot = 0;
+    gunManager.switchWeapon('rifle');
     this.initPhysics();
     this.setupInputHandlers();
   }
@@ -112,10 +120,13 @@ export class PlayerController {
           toggleFlashlight();
           break;
         case 'Digit1':
-          gunManager.switchWeapon('rifle');
+          this.switchSlot(-1);
           break;
         case 'Digit2':
-          gunManager.switchWeapon('awp');
+          this.switchSlot(0);
+          break;
+        case 'Digit3':
+          this.switchSlot(1);
           break;
       }
     });
@@ -174,6 +185,49 @@ export class PlayerController {
       type: 'player',
       playerRef: this // optional: reference back to the controller
     };
+  }
+
+  switchSlot(index) {
+    if (index === -1) {
+      // Knife override
+      const knifeKey = this.state.inventory.melee;
+      this.state.inventory.activeSlot = -1;
+      gunManager.switchWeapon(knifeKey);
+      console.log('Switched to knife');
+      return;
+    }
+
+    const weaponKey = this.state.inventory.slots[index];
+    if (!weaponKey) {
+      console.log(`No weapon in slot ${index + 1}`);
+      return;
+    }
+
+    this.state.inventory.activeSlot = index;
+    gunManager.switchWeapon(weaponKey);
+    console.log(`Switched to slot ${index + 1}: ${weaponKey}`);
+  }
+
+  initializeLoadout() {
+    this.state.inventory.slots[0] = 'rifle';
+    this.state.inventory.activeSlot = 0;
+    gunManager.switchWeapon('rifle');
+  }
+
+  pickupWeapon(weaponKey) {
+    const { slots, activeSlot } = this.state.inventory;
+
+    // Don't pick up if we already have it
+    if (slots.includes(weaponKey)) {
+      console.log(`${weaponKey} is already in inventory`);
+      return;
+    }
+
+    // Replace current active slot with new weapon
+    slots[activeSlot] = weaponKey;
+    gunManager.switchWeapon(weaponKey);
+
+    console.log(`Picked up: ${weaponKey} in slot ${activeSlot + 1}`);
   }
 
   update(delta) {
@@ -267,17 +321,20 @@ export class PlayerController {
     const hit = this.rapierWorld.castRay(ray, 2, true); // 2m range
 
     if (hit && hit.collider?.userData?.type === 'interactable') {
+      const box = hit.collider.userData.interactRef;
+
+      if (box.pendingWeapon) {
+        showInteractPrompt(`Press E to take ${box.pendingWeapon}`);
+      } else {
+        showInteractPrompt("Press E to roll");
+      }
+
       this.state.interactPromptVisible = true;
-      this.state.interactTarget = hit.collider.userData.interactRef;
-      showInteractPrompt(); // Optional: customize text here
+      this.state.interactTarget = box;
     } else {
       hideInteractPrompt();
-    }
-
-    // Show or hide the UI
-    const prompt = document.getElementById('interactPrompt');
-    if (prompt) {
-      prompt.style.display = this.state.interactPromptVisible ? 'block' : 'none';
+      this.state.interactPromptVisible = false;
+      this.state.interactTarget = null;
     }
   }
 

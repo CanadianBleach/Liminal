@@ -80,8 +80,6 @@ export default class GunController extends THREE.Object3D {
     this.traverse(obj => obj.layers.set(1));
 
     this.attachMuzzleFlash();
-
-    console.log('Loaded gun model at', this.model.position);
   }
 
   attachMuzzleFlash() {
