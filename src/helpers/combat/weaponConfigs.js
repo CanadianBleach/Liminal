@@ -8,7 +8,7 @@ export const weaponConfigs = {
         damage: 22,
         recoil: 0.04,
         modelScale: [0.05, 0.05, 0.05],
-        modelOffset: [0.5, -0.2, -.7],
+        modelOffset: [0.2, -0.2, -0.2],
         flashSize: [5, 5],
         fireMode: 'auto',
         ammoCapacity: 1000,
