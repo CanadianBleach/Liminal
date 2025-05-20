@@ -89,8 +89,6 @@ export class EnemyManager {
       this.roundDelayTimer = 0;        // ⬅️ Reset the timer
 
       console.log(`New wave: ${this.waveNumber}, need ${this.killsNeededForNextRound} kills next round`);
-
-      playSound('round_change');
     }
   }
 
