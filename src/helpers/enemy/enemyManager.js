@@ -7,6 +7,10 @@ import { playSound } from '../sounds/audio.js';
 export class EnemyManager {
   constructor(scene, camera, rapierWorld, playerController) {
     this.playerController = playerController;
+    this.roundStartDelay = 3;
+    this.roundDelayTimer = 0;
+    this.readyToSpawn = false;
+
 
     this.scene = scene;
     this.camera = camera;
@@ -115,6 +119,9 @@ export class EnemyManager {
       this.enemiesSpawnedThisRound = 0;
       this.waveInProgress = true;
 
+      this.readyToSpawn = false;       // ⬅️ Delay next wave start
+      this.roundDelayTimer = 0;        // ⬅️ Reset the timer
+
       console.log(`New wave: ${this.waveNumber}, need ${this.killsNeededForNextRound} kills next round`);
 
       playSound('round_change');
@@ -124,10 +131,12 @@ export class EnemyManager {
 
 
   update(delta, playerState) {
-    this.spawnTimer += delta;
-    if (this.spawnTimer >= this.spawnInterval) {
-      this.spawnEnemy();
-      this.spawnTimer = 0;
+    if (this.readyToSpawn) {
+      this.spawnTimer += delta;
+      if (this.spawnTimer >= this.spawnInterval) {
+        this.spawnEnemy();
+        this.spawnTimer = 0;
+      }
     }
 
     this.camera.getWorldPosition(this._cameraPos);
@@ -143,5 +152,13 @@ export class EnemyManager {
     });
     this.checkRoundProgress(playerState);
 
+    // Handle round start delay
+    if (!this.readyToSpawn) {
+      this.roundDelayTimer += delta;
+      if (this.roundDelayTimer >= this.roundStartDelay) {
+        this.readyToSpawn = true;
+        console.log(`Wave ${this.waveNumber} spawning begins`);
+      }
+    }
   }
 }
