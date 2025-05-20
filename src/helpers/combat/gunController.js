@@ -191,25 +191,6 @@ export default class GunController extends THREE.Object3D {
       }
     }
 
-    const material = new THREE.LineBasicMaterial({ color: 0xffaa00 });
-    const points = [
-      new THREE.Vector3().copy(origin),
-      new THREE.Vector3().copy(origin).add(direction.clone().multiplyScalar(100))
-    ];
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const line = new THREE.Line(geometry, material);
-    this.scene?.add(line);
-
-    // Remove the line after 100ms
-    setTimeout(() => {
-      this.scene?.remove(line);
-      geometry.dispose();
-      material.dispose();
-    }, 100);
-
-
-
-
     this.triggerRecoil();
     this.triggerMuzzleFlash();
     const variant = Math.floor(Math.random() * 3) + 1;

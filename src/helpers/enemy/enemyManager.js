@@ -14,7 +14,7 @@ export class EnemyManager {
     this.waveNumber = 1; // ✅ start at wave 1
 
     this.enemyTypes = {
-      grunt: {
+      scary: {
         health: 100,
         speed: 1.5,
         damage: 10,
@@ -25,7 +25,7 @@ export class EnemyManager {
         onDeathEffect: 'blood_splatter'
       },
 
-      shadow: {
+      nugget: {
         health: 100,
         speed: 1.5,
         damage: 10,
