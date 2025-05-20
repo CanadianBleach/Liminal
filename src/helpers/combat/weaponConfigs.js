@@ -55,7 +55,7 @@ export const weaponConfigs = {
         model: '/models/m1911.glb', // Update if you get a pistol model
         texture: '/textures/muzzle1.png',
         mysteryBoxEligible: true,
-        fireRate: 0.4,
+        fireRate: 0.01,
         damage: 15,
         recoil: 0.08,
         fireMode: 'semi',
@@ -63,11 +63,11 @@ export const weaponConfigs = {
         modelOffset: [.7, -0.2, -1],
         modelRotation: [0, 0, 0],
         flashSize: [3, 3],
-        ammoCapacity: 60,
-        clipSize: 12,
-        reloadTime: 2.0,
+        ammoCapacity: 69696969,
+        clipSize: 969,
+        reloadTime: 0.0,
         canADS: true,
-        adsOffset: [0, -0.15, -0.3],
+        //adsOffset: [0, -0.15, -0.3],
         adsFOV: 60
     },
     model680: {

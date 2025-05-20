@@ -28,5 +28,25 @@ export const enemyTypes = {
         texture: null, // placeholder, we’ll override it dynamically
         tier: 1,
         onDeathEffect: 'blood_splatter'
+    },
+    semi: {
+        health: 10,
+        speed: 8,
+        damage: 10,
+        pointValue: 50,
+        size: 3,
+        texture: '/textures/semi.png', // ✅ your new image
+        tier: 1,
+        onDeathEffect: 'blood_splatter'
+    },
+    skibidi: {
+        health: 10,
+        speed: 1,
+        damage: 10,
+        pointValue: 50,
+        size: 1,
+        texture: '/textures/skibidi.png', // ✅ your new image
+        tier: 1,
+        onDeathEffect: 'blood_splatter'
     }
 }
