@@ -20,6 +20,7 @@ export default class GunController extends THREE.Object3D {
     this.texturePath = config.texture ?? '/textures/muzzle1.png';
     this.modelScale = config.modelScale ?? [0.5, 0.5, 0.5];
     this.modelOffset = config.modelOffset ?? [0, -1, -2];
+    this.modelRotation = config.modelRotation ?? [0, 0, 0];
     this.flashSize = config.muzzleFlashSize ?? [5, 5];
     this.fireMode = config.fireMode ?? 'auto'; // 'auto', 'semi', 'burst'
     this.burstCount = config.burstCount ?? 3;
@@ -64,20 +65,32 @@ export default class GunController extends THREE.Object3D {
   async loadModel() {
     const loader = new GLTFLoader();
     const gltf = await loader.loadAsync(this.modelPath);
-    this.model = gltf.scene;
-    this.model.scale.set(...this.modelScale);
-    this.model.position.set(...this.modelOffset);
 
-    // Optional: Make the gun face forward
+    this.model = gltf.scene;
+
+    // Create a wrapper group
+    const wrapper = new THREE.Group();
+    wrapper.add(this.model);
+
+    // Set wrapper's position/scale
+    wrapper.scale.set(...this.modelScale);
+    wrapper.position.set(...this.modelOffset);
+
+    // 👇 Make the wrapper look forward
     const target = new THREE.Vector3();
     this.camera.getWorldDirection(target);
     target.multiplyScalar(10).add(this.camera.position);
-    this.model.lookAt(target);
+    wrapper.lookAt(target);
 
-    this.add(this.model);
+    // 👇 Apply model rotation INSIDE the wrapper
+    if (this.modelRotation) {
+      this.model.rotation.set(...this.modelRotation);
+    }
 
-    // ✅ Set all gun parts to layer 1 (viewmodel only)
-    this.traverse(obj => obj.layers.set(1));
+    this.add(wrapper);
+
+    // Viewmodel layer
+    wrapper.traverse(obj => obj.layers.set(1));
 
     this.attachMuzzleFlash();
   }

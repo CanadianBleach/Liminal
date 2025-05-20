@@ -3,24 +3,9 @@ import * as THREE from 'three';
 export const mysteryBoxSpawns = [
     {
         name: 'Courtyard',
-        position: new THREE.Vector3(2, 1, 0),
+        position: new THREE.Vector3(4, .5, 12.5),
         spawnChance: 0.3
     },
-    {
-        name: 'Warehouse',
-        position: new THREE.Vector3(-5, 1, 3),
-        spawnChance: 0.25
-    },
-    {
-        name: 'Rooftop',
-        position: new THREE.Vector3(10, 1, -7),
-        spawnChance: 0.2
-    },
-    {
-        name: 'Basement',
-        position: new THREE.Vector3(-12, 1, 4),
-        spawnChance: 0.25
-    }
 ];
 
 export function selectBoxSpawnByChance() {

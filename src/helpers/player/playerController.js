@@ -333,7 +333,10 @@ export class PlayerController {
     if (hit && hit.collider?.userData?.type === 'interactable') {
       const box = hit.collider.userData.interactRef;
 
-      if (box.pendingWeapon) {
+      if (this.state.score < box.cost) {
+        showInteractPrompt("You need more points!");
+      }
+      else if (box.pendingWeapon) {
         showInteractPrompt(`Press E to take ${box.pendingWeapon}`);
       } else {
         showInteractPrompt("Press E to roll");
