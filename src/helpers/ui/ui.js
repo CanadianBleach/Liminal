@@ -11,6 +11,9 @@ let sprintBar;
 let ammoCurrent;
 let ammoReserve;
 
+let interactPrompt;
+
+
 export function getUIElements() {
   batteryBar = document.getElementById('battery-bar');
   killCounter = document.getElementById('kill-count');
@@ -19,6 +22,7 @@ export function getUIElements() {
   ammoCurrent = document.getElementById('ammo-current');
   ammoReserve = document.getElementById('ammo-reserve');
   scoreCounter = document.getElementById('score-count');
+  interactPrompt = document.getElementById('interact-prompt');
 }
 
 
@@ -30,6 +34,17 @@ export function updateUI(playerState, enemyManager, battery, currentGun) {
   updateRoundUI(enemyManager);
   checkForRoundUpdate(enemyManager);
   updateAmmoUI(currentGun);
+}
+
+export function showInteractPrompt(text = 'Press E to interact') {
+  if (!interactPrompt) return;
+  interactPrompt.innerText = text;
+  interactPrompt.style.display = 'block';
+}
+
+export function hideInteractPrompt() {
+  if (!interactPrompt) return;
+  interactPrompt.style.display = 'none';
 }
 
 

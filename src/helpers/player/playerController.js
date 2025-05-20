@@ -4,12 +4,14 @@ import { toggleFlashlight } from './flashlight.js';
 import { controlFootsteps, playSound } from '../sounds/audio.js';
 import { gunManager } from '../combat/gunManager.js';
 import RAPIER from '@dimforge/rapier3d-compat';
+import { hideInteractPrompt, showInteractPrompt } from '../ui/ui.js';
 
 export class PlayerController {
   constructor(rapierWorld, controls, cameraWrapper, tiltContainer) {
     this.controls = controls;
     this.cameraWrapper = cameraWrapper;
     this.tiltContainer = tiltContainer;
+    this.camera = this._getCamera();
     this.rapierWorld = rapierWorld;
 
     this.config = {
@@ -63,6 +65,8 @@ export class PlayerController {
       },
       killCount: 0,
       score: 0,
+      interactPromptVisible: false,
+      interactTarget: null,
     };
 
     this.initPhysics();
@@ -76,6 +80,12 @@ export class PlayerController {
         case 'KeyS': this.state.keys.backward = true; break;
         case 'KeyA': this.state.keys.left = true; break;
         case 'KeyD': this.state.keys.right = true; break;
+        case 'KeyE':
+          if (this.state.interactPromptVisible && this.state.interactTarget?.onInteract) {
+            this.state.interactTarget.onInteract();
+          }
+          break;
+
         case 'ShiftLeft':
           this.state.keys.sprint = true;
           this.state.lastSprintTime = performance.now() / 1000;
@@ -236,7 +246,39 @@ export class PlayerController {
     if (this.state.isCrouching) footstepRate = 0.6;
     else if (this.state.keys.sprint) footstepRate = 1.5;
 
+    this._checkForInteractables();
     controlFootsteps(grounded && isMoving, footstepRate);
+  }
+
+  _checkForInteractables() {
+    this.state.interactPromptVisible = false;
+    this.state.interactTarget = null;
+
+    // Check nearby for "interactable" tagged objects
+    const origin = new THREE.Vector3();
+    this.camera.getWorldPosition(origin);
+
+    const direction = new THREE.Vector3();
+    this.camera.getWorldDirection(direction);
+
+    origin.add(direction.clone().multiplyScalar(.9)); // Adjust distance if needed
+
+    const ray = new RAPIER.Ray(origin, direction);
+    const hit = this.rapierWorld.castRay(ray, 2, true); // 2m range
+
+    if (hit && hit.collider?.userData?.type === 'interactable') {
+      this.state.interactPromptVisible = true;
+      this.state.interactTarget = hit.collider.userData.interactRef;
+      showInteractPrompt(); // Optional: customize text here
+    } else {
+      hideInteractPrompt();
+    }
+
+    // Show or hide the UI
+    const prompt = document.getElementById('interactPrompt');
+    if (prompt) {
+      prompt.style.display = this.state.interactPromptVisible ? 'block' : 'none';
+    }
   }
 
   _getCamera() {

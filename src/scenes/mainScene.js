@@ -19,6 +19,7 @@ import { setupRoundIndicator } from '../helpers/ui/ui.js';
 import { setupDamageOverlay } from '../helpers/ui/ui.js';
 import { gunManager } from '../helpers/combat/gunManager.js';
 import { weaponConfigs } from '../helpers/combat/weaponConfigs.js';
+import { MysteryBox } from '../helpers/mysteryBox/mysteryBox.js';
 
 export async function initMainScene() {
     playSound('bg_noise');
@@ -35,6 +36,7 @@ export async function initMainScene() {
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
     const player = new PlayerController(rapierWorld, controls, cameraWrapper, tiltContainer);
     const enemyManager = new EnemyManager(scene, camera, rapierWorld, player);
+    const mysteryBox = new MysteryBox(scene, rapierWorld, new THREE.Vector3(2, 1, 0), 'models/chest/chest.fbx');
 
     gunManager.init(camera, scene, rapierWorld, enemyManager.enemies, weaponConfigs);
     await gunManager.preloadWeapons();

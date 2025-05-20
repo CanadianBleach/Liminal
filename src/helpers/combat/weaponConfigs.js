@@ -11,8 +11,8 @@ export const weaponConfigs = {
         modelOffset: [0.5, -0.2, -.7],
         flashSize: [5, 5],
         fireMode: 'auto',
-        ammoCapacity: 90,
-        clipSize: 35,
+        ammoCapacity: 1000,
+        clipSize: 100,
         reloadTime: 2.4
     },
     awp: {
@@ -33,13 +33,22 @@ export const weaponConfigs = {
         adsOffset: [0, -0.15, -0.3],
         adsFOV: 45
     },
-    /*     knife: {
-            name: 'Knife',
-            model: '/models/knife.glb',
-            fireRate: 0.8,
-            damage: 50,
-            melee: true,
-            range: 2.0,
-            modelScale: [0.01, 0.01, 0.01]
-        } */
+    m1911: {
+        name: 'M1911',
+        model: '/models/awp.glb',
+        texture: '/textures/muzzle1.png',
+        fireRate: 1.5,
+        damage: 95,
+        recoil: 0.15,
+        fireMode: 'semi',
+        modelScale: [0.05, 0.05, 0.05],
+        modelOffset: [0.5, -0.3, -1],
+        flashSize: [5, 5],
+        ammoCapacity: 30,
+        clipSize: 5,
+        reloadTime: 3.2,
+        canADS: true,
+        adsOffset: [0, -0.15, -0.3],
+        adsFOV: 45
+    },
 };
