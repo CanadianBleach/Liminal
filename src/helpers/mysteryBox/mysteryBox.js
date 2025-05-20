@@ -18,7 +18,7 @@ export class MysteryBox {
         this.pendingWeapon = null;
         this.pendingTimeout = null;
 
-        this.cost = 100;
+        this.cost = 50;
 
         const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshStandardMaterial({ color: 0x00ccff });
