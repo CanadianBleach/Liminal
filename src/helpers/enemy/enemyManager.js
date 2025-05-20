@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { Enemy } from './enemy.js';
 
 export class EnemyManager {
-  constructor(scene, camera, rapierWorld) {
+  constructor(scene, camera, rapierWorld, playerController) {
+    this.playerController = playerController;
+
     this.scene = scene;
     this.camera = camera;
     this.rapierWorld = rapierWorld;
@@ -55,13 +57,8 @@ export class EnemyManager {
     loader.load(
       typeCfg.texture,
       (texture) => {
-        const enemy = new Enemy(
-          this.scene,
-          this.rapierWorld,
-          pos,
-          texture,
-          typeCfg // pass full config object
-        );
+        const enemy = new Enemy(this.scene, this.rapierWorld, pos, texture, typeCfg, this.playerController);
+
         this.enemies.push(enemy);
       },
       undefined,

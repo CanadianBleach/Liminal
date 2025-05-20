@@ -61,6 +61,8 @@ export class PlayerController {
         damageInterval: 3,
         damageTimer: 0
       },
+      killCount: 0,
+      score: 0,
     };
 
     this.initPhysics();

@@ -3,6 +3,8 @@ import { playSound } from "../sounds/audio";
 let batteryBar;
 let deathOverlay;
 let killCounter;
+let scoreCounter;
+
 let healthBar;
 let sprintBar;
 
@@ -16,12 +18,13 @@ export function getUIElements() {
   sprintBar = document.getElementById('sprint-bar');
   ammoCurrent = document.getElementById('ammo-current');
   ammoReserve = document.getElementById('ammo-reserve');
+  scoreCounter = document.getElementById('score-count');
 }
 
 
 export function updateUI(playerState, enemyManager, battery, currentGun) {
   updateHealthUI(playerState.health);
-  updateKillsUI(enemyManager);
+  updateKillsUI(playerState);
   updateFlashlightUI(battery);
   updateSprintUI(playerState);
   updateRoundUI(enemyManager);
@@ -75,9 +78,16 @@ export function updateHealthUI(health) {
   }
 }
 
-export function updateKillsUI(enemyManager) {
-  killCounter.textContent = enemyManager.killCount;
+export function updateKillsUI(playerState) {
+  if (killCounter) {
+    killCounter.textContent = playerState.killCount;
+  }
+
+  if (scoreCounter) {
+    scoreCounter.textContent = playerState.score;
+  }
 }
+
 let damageOverlay;
 
 export function setupDamageOverlay() {

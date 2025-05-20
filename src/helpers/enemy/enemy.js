@@ -6,7 +6,9 @@ import { base64ToBlob } from '../ui/imageLoader.js';
 let enemyCounter = 0;
 
 export class Enemy {
-  constructor(scene, rapierWorld, position = new THREE.Vector3(0, 1.5, -5), texture = null, config = {}) {
+  constructor(scene, rapierWorld, position, texture, config = {}, playerController = null) {
+    this.playerController = playerController;
+
     this.scene = scene;
     this.rapierWorld = rapierWorld;
     this.id = enemyCounter++;
@@ -153,6 +155,11 @@ export class Enemy {
   }
 
   destroy() {
+    if (this.playerController) {
+      this.playerController.state.killCount += 1;
+      this.playerController.state.score += this.pointValue ?? 50;
+      console.log(`Kill confirmed! Kills: ${this.playerController.state.killCount}, Score: ${this.playerController.state.score}`);
+    }
     if (this.mesh) {
       this.scene.remove(this.mesh);
       this.mesh.geometry?.dispose();

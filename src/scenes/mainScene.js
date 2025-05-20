@@ -33,8 +33,8 @@ export async function initMainScene() {
 
     await RAPIER.init();
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
-    const enemyManager = new EnemyManager(scene, camera, rapierWorld);
     const player = new PlayerController(rapierWorld, controls, cameraWrapper, tiltContainer);
+    const enemyManager = new EnemyManager(scene, camera, rapierWorld, player);
 
     gunManager.init(camera, scene, rapierWorld, enemyManager.enemies, weaponConfigs);
     await gunManager.preloadWeapons();
