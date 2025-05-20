@@ -4,6 +4,7 @@ export const weaponConfigs = {
         name: 'Galil',
         model: '/models/ak.glb',
         texture: '/textures/muzzle1.png',
+        mysteryBoxEligible: true,
         fireRate: 0.09,
         damage: 22,
         recoil: 0.04,
