@@ -6,8 +6,11 @@ import { base64ToBlob } from '../ui/imageLoader.js';
 let enemyCounter = 0;
 
 export class Enemy {
-  constructor(scene, rapierWorld, position, texture, config = {}, playerController = null) {
+  constructor(scene, rapierWorld, position, texture, config = {}, playerController = null, enemyManager = null) {
     this.playerController = playerController;
+    this.enemyManager = enemyManager;
+    this.destroyed = false;
+
 
     this.scene = scene;
     this.rapierWorld = rapierWorld;
@@ -141,30 +144,43 @@ export class Enemy {
 
   takeDamage(amount) {
     if (!this.alive) return;
-
+  
     this.health -= amount;
+  
     if (this.mesh?.material) {
       this.mesh.material.color.set(0xff0000);
       this.hitFlashTime = 0.05;
     }
-
+  
     if (this.health <= 0) {
       this.alive = false;
       this.destroy();
     }
-  }
+  }  
+  
 
   destroy() {
+    if (this.destroyed) return; // 🛑 hard stop
+    this.destroyed = true;
+  
+    console.log(`Destroy called for enemy ${this.id}`);
+  
+    if (this.enemyManager) {
+      this.enemyManager.killsThisRound += 1;
+      console.log(`Enemy ${this.id} killed, kills this round:`, this.enemyManager.killsThisRound);
+    }
+  
     if (this.playerController) {
       this.playerController.state.killCount += 1;
       this.playerController.state.score += this.pointValue ?? 50;
-      console.log(`Kill confirmed! Kills: ${this.playerController.state.killCount}, Score: ${this.playerController.state.score}`);
     }
+  
     if (this.mesh) {
       this.scene.remove(this.mesh);
       this.mesh.geometry?.dispose();
       this.mesh.material?.dispose();
     }
+  
     if (this.collider) {
       this.rapierWorld.removeCollider(this.collider, true);
     }

@@ -19,7 +19,7 @@ export default class GunController extends THREE.Object3D {
     this.modelPath = config.model ?? '/models/fps_mine_sketch_galil.glb';
     this.texturePath = config.texture ?? '/textures/muzzle1.png';
     this.modelScale = config.modelScale ?? [0.5, 0.5, 0.5];
-    this.modelOffset = config.modelOffset ?? [0, 1, -2];
+    this.modelOffset = config.modelOffset ?? [0, -1, -2];
     this.flashSize = config.muzzleFlashSize ?? [5, 5];
     this.fireMode = config.fireMode ?? 'auto'; // 'auto', 'semi', 'burst'
     this.burstCount = config.burstCount ?? 3;
