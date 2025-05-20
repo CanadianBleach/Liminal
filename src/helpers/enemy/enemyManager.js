@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { Enemy } from './enemy.js';
+import { base64ToBlob } from '../ui/imageLoader.js';
+
 
 export class EnemyManager {
   constructor(scene, camera, rapierWorld, playerController) {
@@ -36,35 +38,58 @@ export class EnemyManager {
         texture: '/textures/shadow.png', // ✅ your new image
         tier: 1,
         onDeathEffect: 'blood_splatter'
+      },
+
+      custom: {
+        health: 100,
+        speed: 1.5,
+        damage: 10,
+        pointValue: 75,
+        size: 1,
+        texture: null, // placeholder, we’ll override it dynamically
+        tier: 1,
+        onDeathEffect: 'blood_splatter'
       }
       // Add more types later
     };
   }
   spawnEnemy() {
     const pos = new THREE.Vector3(Math.random() * 20 - 10, 1.5, Math.random() * 20 - 10);
-
+  
     // Get eligible types by wave
     const eligibleTypes = Object.entries(this.enemyTypes)
       .filter(([_, cfg]) => cfg.tier <= this.waveNumber);
-
+  
     if (eligibleTypes.length === 0) return;
-
+  
     const [typeKey, typeCfg] = eligibleTypes[Math.floor(Math.random() * eligibleTypes.length)];
-
+  
+    // 🔽 Handle 'custom' texture from localStorage
+    if (typeKey === 'custom') {
+      const base64Image = localStorage.getItem('enemyTexture');
+      if (base64Image) {
+        const blob = base64ToBlob(base64Image, 'image/png');
+        typeCfg.texture = URL.createObjectURL(blob);
+      } else {
+        console.warn("Custom enemy selected but no 'enemyTexture' found in localStorage.");
+        return; // Skip spawning if no custom image
+      }
+    }
+  
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
-
+  
     loader.load(
       typeCfg.texture,
       (texture) => {
         const enemy = new Enemy(this.scene, this.rapierWorld, pos, texture, typeCfg, this.playerController);
-
         this.enemies.push(enemy);
       },
       undefined,
       (err) => console.error(`Failed to load texture for ${typeKey}`, err)
     );
   }
+  
 
   update(delta, playerState) {
     this.spawnTimer += delta;
