@@ -42,6 +42,7 @@ export function showInteractPrompt(text = 'Press E to interact') {
   interactPrompt.style.display = 'block';
 }
 
+
 export function hideInteractPrompt() {
   if (!interactPrompt) return;
   interactPrompt.style.display = 'none';
