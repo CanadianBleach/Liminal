@@ -236,3 +236,10 @@ body {
 .hud-item {
   margin-bottom: 4px;
 }
+
+.score {
+  color: gold;
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-left: 20px;
+}

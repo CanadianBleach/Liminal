@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Enemy } from './enemy.js';
 import { base64ToBlob } from '../ui/imageLoader.js';
+import { playSound } from '../sounds/audio.js';
 
 
 export class EnemyManager {
@@ -16,6 +17,11 @@ export class EnemyManager {
     this.spawnInterval = 5; // seconds
     this._cameraPos = new THREE.Vector3();
     this.waveNumber = 1; // ✅ start at wave 1
+
+    this.waveInProgress = true;
+
+    this.killsNeededForNextRound = 10; // Starting requirement
+    this.killCount = 0; // Local tracker to avoid syncing back to player each time
 
     this.enemyTypes = {
       scary: {
@@ -55,15 +61,15 @@ export class EnemyManager {
   }
   spawnEnemy() {
     const pos = new THREE.Vector3(Math.random() * 20 - 10, 1.5, Math.random() * 20 - 10);
-  
+
     // Get eligible types by wave
     const eligibleTypes = Object.entries(this.enemyTypes)
       .filter(([_, cfg]) => cfg.tier <= this.waveNumber);
-  
+
     if (eligibleTypes.length === 0) return;
-  
+
     const [typeKey, typeCfg] = eligibleTypes[Math.floor(Math.random() * eligibleTypes.length)];
-  
+
     // 🔽 Handle 'custom' texture from localStorage
     if (typeKey === 'custom') {
       const base64Image = localStorage.getItem('enemyTexture');
@@ -75,10 +81,10 @@ export class EnemyManager {
         return; // Skip spawning if no custom image
       }
     }
-  
+
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
-  
+
     loader.load(
       typeCfg.texture,
       (texture) => {
@@ -89,7 +95,21 @@ export class EnemyManager {
       (err) => console.error(`Failed to load texture for ${typeKey}`, err)
     );
   }
-  
+  checkRoundProgress(playerState) {
+    if (playerState.killCount >= this.killsNeededForNextRound) {
+      this.waveNumber++;
+      this.waveInProgress = true;
+
+      // Scale difficulty: increase kill requirement exponentially or linearly
+      this.killsNeededForNextRound += Math.floor(5 + this.waveNumber * 2);
+
+      console.log(`New wave: ${this.waveNumber}, next at ${this.killsNeededForNextRound} kills`);
+
+      // Optional: Trigger audio/visual feedback
+      playSound('round_change');
+    }
+  }
+
 
   update(delta, playerState) {
     this.spawnTimer += delta;
@@ -109,5 +129,7 @@ export class EnemyManager {
       enemy.update(this._cameraPos, delta, playerState);
       return true;
     });
+    this.checkRoundProgress(playerState);
+
   }
 }
