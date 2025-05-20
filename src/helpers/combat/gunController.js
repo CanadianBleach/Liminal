@@ -4,9 +4,10 @@ import { playSound } from '../sounds/audio.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 export default class GunController extends THREE.Object3D {
-  constructor(camera, rapierWorld, enemies, config = {}) {
+  constructor(camera, scene, rapierWorld, enemies, config = {}) {
     super();
     this.camera = camera;
+    this.scene = scene;
     this.rapierWorld = rapierWorld;
     this.enemies = enemies;
     this.config = config;
@@ -163,18 +164,51 @@ export default class GunController extends THREE.Object3D {
 
     this.currentAmmo--;
 
-    const origin = this.getMuzzleWorldPosition();
+    // 1. Get camera position and direction
+    const origin = new THREE.Vector3();
+    this.camera.getWorldPosition(origin);
+
     const direction = new THREE.Vector3();
     this.camera.getWorldDirection(direction).normalize();
 
+    // 2. Move the ray origin slightly forward from the camera to avoid self-hit
+    origin.add(direction.clone().multiplyScalar(.9)); // Adjust distance if needed
+
+    // 3. Raycast
     const ray = new RAPIER.Ray(origin, direction);
     const hit = this.rapierWorld.castRay(ray, 100, true);
+
     if (hit) {
       const collider = hit.collider;
-      if (collider?.userData?.type === 'enemy') {
+      const tag = collider?.userData?.type;
+
+      if (tag === 'enemy') {
         collider.userData.enemyRef.takeDamage(this.damage);
+      } else if (tag === 'player') {
+        console.log("Ray hit the player (self), ignoring...");
+      } else {
+        console.log("Ray hit something else:", tag);
       }
     }
+
+    const material = new THREE.LineBasicMaterial({ color: 0xffaa00 });
+    const points = [
+      new THREE.Vector3().copy(origin),
+      new THREE.Vector3().copy(origin).add(direction.clone().multiplyScalar(100))
+    ];
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const line = new THREE.Line(geometry, material);
+    this.scene?.add(line);
+
+    // Remove the line after 100ms
+    setTimeout(() => {
+      this.scene?.remove(line);
+      geometry.dispose();
+      material.dispose();
+    }, 100);
+
+
+
 
     this.triggerRecoil();
     this.triggerMuzzleFlash();
@@ -182,12 +216,14 @@ export default class GunController extends THREE.Object3D {
     playSound(`gunshot_${variant}`);
   }
 
+
   startReload() {
     if (this.isReloading || this.currentAmmo === this.clipSize || this.reserveAmmo <= 0) return;
     this.isReloading = true;
     this.reloadTimer = 0;
     playSound('reload');
   }
+
   updateAnimation(delta) {
     // 🔁 Mouse-based sway
     const currentYaw = this.camera.parent?.parent?.rotation.y ?? 0;

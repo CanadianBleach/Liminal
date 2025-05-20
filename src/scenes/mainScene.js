@@ -18,6 +18,7 @@ import { getUIElements, setupDeathOverlay, updateUI } from '../helpers/ui/ui.js'
 import { setupRoundIndicator } from '../helpers/ui/ui.js';
 import { setupDamageOverlay } from '../helpers/ui/ui.js';
 import { gunManager } from '../helpers/combat/gunManager.js';
+import { weaponConfigs } from '../helpers/combat/weaponConfigs.js';
 
 export async function initMainScene() {
     playSound('bg_noise');
@@ -35,7 +36,7 @@ export async function initMainScene() {
     const enemyManager = new EnemyManager(scene, camera, rapierWorld);
     const player = new PlayerController(rapierWorld, controls, cameraWrapper, tiltContainer);
 
-    gunManager.init(camera, scene, rapierWorld, enemyManager.enemies);
+    gunManager.init(camera, scene, rapierWorld, enemyManager.enemies, weaponConfigs);
     await gunManager.preloadWeapons();
 
     await loadGLBModel(scene, rapierWorld);

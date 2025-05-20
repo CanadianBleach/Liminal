@@ -52,18 +52,33 @@ export class Enemy {
   }
 
   _createCollider(position) {
-    const desc = RAPIER.ColliderDesc.cuboid(0.5 * this.size, 1 * this.size, 0.05)
-      .setTranslation(position.x, position.y, position.z)
+    // Create a kinematic body to move the enemy
+    const bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
+      .setTranslation(position.x, position.y, position.z);
+    const body = this.rapierWorld.createRigidBody(bodyDesc);
+
+    // Cuboid: half extents (x: width/2, y: height/2, z: depth/2)
+    const halfExtents = { x: 0.5, y: 1, z: 0.3 };
+    const colliderDesc = RAPIER.ColliderDesc.cuboid(
+      halfExtents.x, halfExtents.y, halfExtents.z
+    )
       .setCollisionGroups(0b01 << 16 | 0b01)
       .setSensor(false)
       .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
 
-    const collider = this.rapierWorld.createCollider(desc);
+    const collider = this.rapierWorld.createCollider(colliderDesc, body);
+
+    // Tag for interaction
     collider.userData = {
       type: 'enemy',
       enemyId: this.id,
       enemyRef: this
     };
+
+    // Store references
+    this.body = body;
+    this.collider = collider;
+
     return collider;
   }
 
@@ -71,20 +86,35 @@ export class Enemy {
     const dir = new THREE.Vector3().subVectors(playerPosition, this.mesh.position);
     const dist = dir.length();
 
-    const lookAtPos = new THREE.Vector3().copy(playerPosition);
-    lookAtPos.y = this.mesh.position.y;
-    this.mesh.lookAt(lookAtPos);
-
     if (dist > this.minDistanceToPlayer) {
       dir.normalize();
       this.mesh.position.add(dir.multiplyScalar(this.moveSpeed * delta));
     }
 
-    this.collider.setTranslation({
+    this.body.setNextKinematicTranslation({
       x: this.mesh.position.x,
       y: this.mesh.position.y,
       z: this.mesh.position.z
-    }, true);
+    });
+
+    // Compute look rotation manually
+    const target = new THREE.Vector3().copy(playerPosition);
+    target.y = this.mesh.position.y;
+
+    const direction = new THREE.Vector3().subVectors(target, this.mesh.position).normalize();
+    const up = new THREE.Vector3(0, 1, 0);
+    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction);
+
+    // Apply to mesh
+    this.mesh.quaternion.copy(quat);
+
+    // Apply to physics body
+    this.body.setNextKinematicRotation({
+      x: quat.x,
+      y: quat.y,
+      z: quat.z,
+      w: quat.w
+    });
 
     if (this.hitFlashTime > 0) {
       this.hitFlashTime -= delta;
@@ -100,7 +130,7 @@ export class Enemy {
         this.damageTimer = 0;
         playerState.health.current = Math.max(0, playerState.health.current - this.damageAmount);
         console.log(`Player damaged by enemy ${this.id}, health now:`, playerState.health.current);
-        flashDamageOverlay(); 
+        flashDamageOverlay();
       }
     } else {
       this.damageTimer = 0;
