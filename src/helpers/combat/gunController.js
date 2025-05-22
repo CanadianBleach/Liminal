@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { playSound } from '../sounds/audio.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 
@@ -16,8 +17,8 @@ export default class GunController extends THREE.Object3D {
     this.cooldown = config.fireRate ?? 0.15;
     this.damage = config.damage ?? 10;
     this.recoilStrength = config.recoil ?? 0.07;
-    this.modelPath = config.model ?? '/models/fps_mine_sketch_galil.glb';
-    this.texturePath = config.texture ?? '/textures/muzzle1.png';
+    this.modelPath = config.model;
+    this.texturePath = config.muzzleFlashTexture ?? '/textures/muzzle1.png';
     this.modelScale = config.modelScale ?? [0.5, 0.5, 0.5];
     this.modelOffset = config.modelOffset ?? [0, -1, -2];
     this.modelRotation = config.modelRotation ?? [0, 0, 0];
@@ -63,36 +64,68 @@ export default class GunController extends THREE.Object3D {
   }
 
   async loadModel() {
-    const loader = new GLTFLoader();
-    const gltf = await loader.loadAsync(this.modelPath);
+    const ext = this.modelPath.split('.').pop().toLowerCase();
+    const textureLoader = new THREE.TextureLoader();
 
-    this.model = gltf.scene;
+    try {
+      let model;
 
-    // Create a wrapper group
-    const wrapper = new THREE.Group();
-    wrapper.add(this.model);
+      if (ext === 'fbx') {
+        const loader = new FBXLoader();
+        model = await loader.loadAsync(this.modelPath);
+      } else if (ext === 'glb' || ext === 'gltf') {
+        const loader = new GLTFLoader();
+        const gltf = await loader.loadAsync(this.modelPath);
+        model = gltf.scene;
+      } else {
+        throw new Error(`Unsupported model format: .${ext}`);
+      }
 
-    // Set wrapper's position/scale
-    wrapper.scale.set(...this.modelScale);
-    wrapper.position.set(...this.modelOffset);
+      this.model = model;
 
-    // 👇 Make the wrapper look forward
-    const target = new THREE.Vector3();
-    this.camera.getWorldDirection(target);
-    target.multiplyScalar(10).add(this.camera.position);
-    wrapper.lookAt(target);
+      // 📦 Load texture maps if defined
+      const texCfg = this.config.textures || {};
+      const material = new THREE.MeshStandardMaterial({
+        map: texCfg.baseColor ? textureLoader.load(texCfg.baseColor) : null,
+        normalMap: texCfg.normal ? textureLoader.load(texCfg.normal) : null,
+        metalnessMap: texCfg.metallic ? textureLoader.load(texCfg.metallic) : null,
+        roughnessMap: texCfg.roughness ? textureLoader.load(texCfg.roughness) : null,
+        metalness: .1,
+        roughness: .5,
+      });
 
-    // 👇 Apply model rotation INSIDE the wrapper
-    if (this.modelRotation) {
-      this.model.rotation.set(...this.modelRotation);
+      // 🧱 Apply to all meshes in model
+      this.model.traverse(child => {
+        if (child.isMesh) {
+          child.material = material;
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+
+      // ➕ Wrap and add
+      const wrapper = new THREE.Group();
+      wrapper.add(this.model);
+
+      wrapper.scale.set(...this.modelScale);
+      wrapper.position.set(...this.modelOffset);
+
+      const target = new THREE.Vector3();
+      this.camera.getWorldDirection(target);
+      target.multiplyScalar(10).add(this.camera.position);
+      wrapper.lookAt(target);
+
+      if (this.modelRotation) {
+        this.model.rotation.set(...this.modelRotation);
+      }
+
+      this.add(wrapper);
+      wrapper.traverse(obj => obj.layers.set(1));
+
+      this.attachMuzzleFlash();
+    } catch (err) {
+      console.error(`Failed to load model for "${this.config.name}" at "${this.modelPath}":`, err);
     }
-
-    this.add(wrapper);
-
-    // Viewmodel layer
-    wrapper.traverse(obj => obj.layers.set(1));
-
-    this.attachMuzzleFlash();
   }
 
   attachMuzzleFlash() {

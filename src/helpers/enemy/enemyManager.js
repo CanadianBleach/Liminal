@@ -92,8 +92,6 @@ export class EnemyManager {
     }
   }
 
-
-
   update(delta, playerState) {
     if (this.readyToSpawn) {
       this.spawnTimer += delta;

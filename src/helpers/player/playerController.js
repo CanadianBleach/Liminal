@@ -210,9 +210,9 @@ export class PlayerController {
   }
 
   initializeLoadout() {
-    this.state.inventory.slots[0] = 'm1911';
+    this.state.inventory.slots[0] = 'autoguns_gun1';
     this.state.inventory.activeSlot = 0;
-    gunManager.switchWeapon('m1911');
+    gunManager.switchWeapon('autoguns_gun1');
   }
 
   pickupWeapon(weaponKey) {

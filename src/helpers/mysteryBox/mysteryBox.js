@@ -8,7 +8,6 @@ export class MysteryBox {
         this.scene = scene;
         this.rapierWorld = rapierWorld;
         this.boxSpawn = selectBoxSpawnByChance();
-        console.log(this.position)
         this.player = player;
 
         this.cooldown = 0;
@@ -57,7 +56,7 @@ export class MysteryBox {
         }
 
         // 💰 Require 100 points to roll
-        if (this.player.state.points < this.cost) {
+        if (this.player.state.score < this.cost) {
             console.log("Not enough points to use the mystery box.");
             return;
         }
@@ -69,11 +68,17 @@ export class MysteryBox {
         this.rolling = true;
         this.lastUseTime = now;
 
+        const owned = this.player.state.inventory.slots;
         const eligibleWeapons = Object.entries(weaponConfigs)
-            .filter(([_, config]) => config.mysteryBoxEligible)
+            .filter(([key, config]) =>
+                config.mysteryBoxEligible && !owned.includes(key)
+            )
             .map(([key]) => key);
 
-        if (eligibleWeapons.length === 0) return;
+        if (eligibleWeapons.length === 0) {
+            console.log("Mystery box: No new weapons to give.");
+            return;
+        }
 
         const rollDuration = 2000;
         const intervalTime = 150;
