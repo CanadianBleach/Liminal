@@ -58,6 +58,8 @@ export default class GunController extends THREE.Object3D {
     this.timeSinceLastShot = 0;
     this.isMouseDown = false;
     this.hasFiredSinceMouseDown = false;
+    this.reloadAnimTime = 0;
+    this.isReloadingAnim = false;
 
     // Burst fire state
     this.burstShotsRemaining = 0;
@@ -149,8 +151,8 @@ export default class GunController extends THREE.Object3D {
     this.add(this.muzzleFlashLight);
   }
 
-
   update(delta, controls) {
+    // 🔁 Handle reload logic
     if (this.isReloading) {
       this.reloadTimer += delta;
       if (this.reloadTimer >= this.reloadTime) {
@@ -159,14 +161,22 @@ export default class GunController extends THREE.Object3D {
         this.currentAmmo += toReload;
         this.reserveAmmo -= toReload;
         this.isReloading = false;
+        playSound("end_reload");
       }
-      return;
     }
 
+    // ⏱️ Time tracking
     this.timeSinceLastShot += delta;
+
+    // 🎞️ Always animate
     this.updateAnimation(delta);
 
+    // 🧊 Prevent input if pointer not locked
     if (!controls.isLocked) return;
+
+    // ⛔ Don't allow firing while reloading
+    if (this.isReloading) return;
+
     const readyToFire = this.timeSinceLastShot >= this.cooldown;
 
     switch (this.fireMode) {
@@ -280,7 +290,9 @@ export default class GunController extends THREE.Object3D {
     if (this.isReloading || this.currentAmmo === this.clipSize || this.reserveAmmo <= 0) return;
     this.isReloading = true;
     this.reloadTimer = 0;
-    playSound('reload');
+    this.reloadAnimTime = 0;
+    this.isReloadingAnim = true;
+    playSound('start_reload');
   }
 
   updateAnimation(delta) {
