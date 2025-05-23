@@ -65,7 +65,7 @@ export class PlayerController {
       },
       inventory: {
         slots: [null, null], // slot 0 and 1 for guns
-        melee: weaponConfigs.karambit,
+        melee: weaponConfigs.knife,
         activeSlot: 0 // index of currently active gun slot
       },
       killCount: 0,
@@ -126,7 +126,8 @@ export class PlayerController {
           this.switchSlot(1);
           break;
         case 'Digit3':
-          this.switchSlot(-1);
+          console.log("SWITCH TO SLOT -1 TO ENABLE KNIFE");
+          //this.switchSlot(-1);
           break;
       }
     });

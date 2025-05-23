@@ -1,4 +1,27 @@
 export const weaponConfigs = {
+  knife: {
+    name: 'Knife',
+    model: '/models/combat_knife.glb',
+    muzzleFlashTexture: '/textures/muzzle1.png', // not used but required
+    mysteryBoxEligible: false, // not in box, it's default melee
+    fireRate: 1.0, // swing rate
+    damage: 75, // strong melee hit
+    recoil: 0.02, // tiny animation kick
+    fireMode: 'melee',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [0, 0], // no muzzle flash
+    ammoCapacity: Infinity, // not used
+    clipSize: Infinity, // not used
+    reloadTime: 0, // no reload
+    canADS: false,
+    textures: {
+      baseColor: '',
+      normal: '',
+      metallic: '',
+      roughness: ''
+    }
+  },
   autoguns_gun1: {
     name: 'Autoguns Gun 1',
     model: '/models/autoguns/gun1.fbx',
