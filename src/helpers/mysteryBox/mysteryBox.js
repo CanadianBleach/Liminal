@@ -3,6 +3,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { weaponConfigs } from '../combat/weaponConfigs';
 import { selectBoxSpawnByChance } from './mysteryBoxSpawns';
 import { FBXLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
+import { playSound } from '../sounds/audio';
 
 export class MysteryBox {
     constructor(scene, rapierWorld, player) {
@@ -21,8 +22,8 @@ export class MysteryBox {
         this.cost = 50;
 
         const loader = new GLTFLoader();
-        loader.load('/models/mysterybox/mystery_box.glb', (glb) => {
-            const { wrapper, collider, debugMesh } = this.setupModelWithCollider({
+        loader.load('/models/mysteryBox/mystery_box.glb', (glb) => {
+            const { wrapper, collider } = this.setupModelWithCollider({
                 model: glb.scene,
                 position: this.boxSpawn.position,
                 scene: this.scene,
@@ -72,26 +73,25 @@ export class MysteryBox {
 
         const collider = rapierWorld.createCollider(colliderDesc);
 
-/*         // 5. Debug mesh
-        let debugMesh = null;
-        if (debug) {
-            const debugMaterial = new THREE.MeshBasicMaterial({
-                color: 0xff0000,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.3
-            });
-
-            const debugGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-            debugMesh = new THREE.Mesh(debugGeometry, debugMaterial);
-            debugMesh.position.copy(position);
-            scene.add(debugMesh);
-        } */
+        /*         // 5. Debug mesh
+                let debugMesh = null;
+                if (debug) {
+                    const debugMaterial = new THREE.MeshBasicMaterial({
+                        color: 0xff0000,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.3
+                    });
+        
+                    const debugGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+                    debugMesh = new THREE.Mesh(debugGeometry, debugMaterial);
+                    debugMesh.position.copy(position);
+                    scene.add(debugMesh);
+                } */
 
         return {
             wrapper,
             collider,
-            debugMesh
         };
     }
 
@@ -114,6 +114,7 @@ export class MysteryBox {
 
         // 💰 Require 100 points to roll
         if (this.player.state.score < this.cost) {
+            playSound("box_error");
             console.log("Not enough points to use the mystery box.");
             return;
         }
@@ -137,7 +138,7 @@ export class MysteryBox {
             return;
         }
 
-        const rollDuration = 2000;
+        const rollDuration = 5000;
         const intervalTime = 150;
 
         let rollInterval = setInterval(() => {
@@ -145,7 +146,9 @@ export class MysteryBox {
             console.log('Rolling... showing:', fakePick);
         }, intervalTime);
 
+        playSound("box_spin");
         setTimeout(() => {
+            playSound("box_win");
             clearInterval(rollInterval);
 
             const selectedWeapon = eligibleWeapons[Math.floor(Math.random() * eligibleWeapons.length)];

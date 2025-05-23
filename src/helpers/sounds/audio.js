@@ -38,7 +38,9 @@ export function loadSounds(camera) {
   loadSound('gunshot_3', './sounds/gunshot_3.MP3');
   loadSound('round_change', './sounds/round_change.mp3');
   loadSound('flashlight_click', './sounds/flashlight_click.mp3');
-
+  loadSound('box_spin', './sounds/mysteryBox/box_spin.mp3');
+  loadSound('box_win', './sounds/mysteryBox/box_win.mp3');
+  loadSound('box_error', './sounds/mysteryBox/box_error.mp3');
 
   // Looped sounds
   loadSound('bg_noise', './sounds/bg_noise.mp3', true);
