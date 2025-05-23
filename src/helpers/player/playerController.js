@@ -120,13 +120,13 @@ export class PlayerController {
           toggleFlashlight();
           break;
         case 'Digit1':
-          this.switchSlot(-1);
-          break;
-        case 'Digit2':
           this.switchSlot(0);
           break;
-        case 'Digit3':
+        case 'Digit2':
           this.switchSlot(1);
+          break;
+        case 'Digit3':
+          this.switchSlot(-1);
           break;
       }
     });
@@ -144,7 +144,7 @@ export class PlayerController {
     });
 
     document.addEventListener('mousedown', (e) => {
-      if (e.button === 0) {
+      if (e.button === 0 && gunManager.currentGun) {
         gunManager.currentGun.isMouseDown = true;
         gunManager.currentGun.hasFiredSinceMouseDown = false;
         if (gunManager.currentGun.fireMode === 'burst') {
@@ -157,7 +157,7 @@ export class PlayerController {
     });
 
     document.addEventListener('mouseup', (e) => {
-      if (e.button === 0) {
+      if (e.button === 0 && gunManager.currentGun) {
         gunManager.currentGun.isMouseDown = false;
         gunManager.currentGun.hasFiredSinceMouseDown = false;
       }
@@ -210,9 +210,9 @@ export class PlayerController {
   }
 
   initializeLoadout() {
-    this.state.inventory.slots[0] = 'autoguns_gun1';
+    this.state.inventory.slots[0] = 'handguns_gun1';
     this.state.inventory.activeSlot = 0;
-    gunManager.switchWeapon('autoguns_gun1');
+    gunManager.switchWeapon('handguns_gun1');
   }
 
   pickupWeapon(weaponKey) {
@@ -335,11 +335,11 @@ export class PlayerController {
 
       if (box.pendingWeapon) {
         showInteractPrompt(`Press E to take ${box.pendingWeapon}`);
-      }
-      else if (this.state.score < box.cost) {
+      } else if (box.rolling) {
+        showInteractPrompt("ROLLING ROLLING ROLLING ROLLING")
+      } else if (this.state.score < box.cost) {
         showInteractPrompt("You need more points!");
-      }
-       else {
+      } else {
         showInteractPrompt("Press E to roll");
       }
 
@@ -423,7 +423,6 @@ export class PlayerController {
       direction.copy(worldMove.normalize());
     }
   }
-
 
   _updateMovementVelocity(delta, isAirborne) {
     const speedMult = this.state.isCrouching

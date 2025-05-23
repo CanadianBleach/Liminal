@@ -154,7 +154,7 @@ function setupEvents(camera, renderer, controls) {
 }
 
 function setupLighting(scene) {
-    const light = new THREE.AmbientLight(0xffffff, 10);
+    const light = new THREE.AmbientLight(0xffffff, 5);
     light.layers.enable(1);
     scene.add(light);
 }

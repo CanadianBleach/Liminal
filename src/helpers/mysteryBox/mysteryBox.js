@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { weaponConfigs } from '../combat/weaponConfigs';
 import { selectBoxSpawnByChance } from './mysteryBoxSpawns';
+import { FBXLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
 
 export class MysteryBox {
     constructor(scene, rapierWorld, player) {
@@ -19,22 +20,78 @@ export class MysteryBox {
 
         this.cost = 50;
 
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshStandardMaterial({ color: 0x00ccff });
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.position.copy(this.boxSpawn.position);
-        scene.add(this.mesh);
+        const loader = new GLTFLoader();
+        loader.load('/models/mysterybox/mystery_box.glb', (glb) => {
+            const { wrapper, collider, debugMesh } = this.setupModelWithCollider({
+                model: glb.scene,
+                position: this.boxSpawn.position,
+                scene: this.scene,
+                rapierWorld: this.rapierWorld
+            });
 
-        const colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5)
-            .setTranslation(this.boxSpawn.position.x, this.boxSpawn.position.y, this.boxSpawn.position.z)
-            .setSensor(true)
-            .setCollisionGroups(0b0011 << 16 | 0b0001);
+            this.wrapper = wrapper;
+            this.collider = collider;
+            this.collider.userData = {
+                type: 'interactable',
+                interactRef: this
+            };
+        }, undefined, err => {
+            console.error("Failed to load model:", err);
+        });
+    }
 
-        this.collider = rapierWorld.createCollider(colliderDesc);
+    setupModelWithCollider({
+        model,
+        position,
+        scene,
+        rapierWorld,
+        collisionGroup = 0b0011 << 16 | 0b0001,
+        debug = true
+    }) {
+        // 1. Compute bounding box
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
 
-        this.collider.userData = {
-            type: 'interactable',
-            interactRef: this
+        // 2. Center the model
+        model.position.sub(center);
+
+        // 3. Wrap the model
+        const wrapper = new THREE.Group();
+        wrapper.add(model);
+        wrapper.position.copy(position);
+        scene.add(wrapper);
+
+        // 4. Create RAPIER collider
+        const colliderDesc = RAPIER.ColliderDesc.cuboid(size.x / 2, size.y / 2, size.z / 2)
+            .setTranslation(position.x, position.y, position.z)
+            .setSensor(false) // ✅ solid for raycasts
+            .setCollisionGroups(collisionGroup);
+
+        const collider = rapierWorld.createCollider(colliderDesc);
+
+/*         // 5. Debug mesh
+        let debugMesh = null;
+        if (debug) {
+            const debugMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+
+            const debugGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+            debugMesh = new THREE.Mesh(debugGeometry, debugMaterial);
+            debugMesh.position.copy(position);
+            scene.add(debugMesh);
+        } */
+
+        return {
+            wrapper,
+            collider,
+            debugMesh
         };
     }
 

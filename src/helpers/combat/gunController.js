@@ -90,8 +90,6 @@ export default class GunController extends THREE.Object3D {
         normalMap: texCfg.normal ? textureLoader.load(texCfg.normal) : null,
         metalnessMap: texCfg.metallic ? textureLoader.load(texCfg.metallic) : null,
         roughnessMap: texCfg.roughness ? textureLoader.load(texCfg.roughness) : null,
-        metalness: .1,
-        roughness: .5,
       });
 
       // 🧱 Apply to all meshes in model
