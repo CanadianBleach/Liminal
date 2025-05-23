@@ -7,6 +7,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import { PlayerController } from '../helpers/player/playerController.js';
 import { EnemyManager } from '../helpers/enemy/enemyManager.js';
@@ -69,7 +70,7 @@ export async function initMainScene() {
         updateFlashlight(camera, flashlight, flashlightTarget, delta);
 
         flickeringLights.forEach(light => {
-            if (Math.random() < 0.1) light.intensity = 60 + Math.random() * 60;
+            if (Math.random() < 0.1) light.intensity = 20 + Math.random() * 30;
         });
 
         updateUI(player.state, enemyManager, flashlightState, gunManager.currentGun);
@@ -131,11 +132,23 @@ function initCore() {
 function setupPostProcessingEffects(renderer, scene, camera) {
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new FilmPass(0.4, 0.025, 648, false));
+
+    // Film grain
+    composer.addPass(new FilmPass(0.4, false, 648, false));
+
+    // Vignette
     const vignettePass = new ShaderPass(VignetteShader);
     vignettePass.uniforms['offset'].value = 1.0;
     vignettePass.uniforms['darkness'].value = 1.2;
     composer.addPass(vignettePass);
+
+    // Bloom
+    const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        .05, 0.2, 0.85
+    );
+    composer.addPass(bloomPass);
+
     return composer;
 }
 
