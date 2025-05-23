@@ -319,12 +319,27 @@ export default class GunController extends THREE.Object3D {
     const baseOffset = this.isAiming && this.canADS ? this.adsOffset : this.defaultOffset;
     const baseVec = new THREE.Vector3(...baseOffset);
 
-    // ➕ Combine all animation offsets
     const animatedOffset = baseVec.clone().add(new THREE.Vector3(
       this.swayOffset.x + bobOffsetX,
       bobOffsetY,
       this.recoilOffset
     ));
+
+    // 🧃 Reload dip animation — apply to animatedOffset
+    if (this.isReloadingAnim) {
+      this.reloadAnimTime += delta;
+
+      const t = this.reloadAnimTime;
+      const duration = this.reloadTime;
+      const p = Math.sin(Math.min(t / duration, 1) * Math.PI);
+
+      const reloadDip = new THREE.Vector3(0.1 * p, -0.2 * p, -0.15 * p);
+      animatedOffset.add(reloadDip); // ✅ apply here
+
+      if (t >= duration) {
+        this.isReloadingAnim = false;
+      }
+    }
 
     this.position.lerp(animatedOffset, delta * 10);
 
