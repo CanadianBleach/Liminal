@@ -139,14 +139,28 @@ export default class GunController extends THREE.Object3D {
       side: THREE.DoubleSide,
     });
 
-    const geo = new THREE.PlaneGeometry(...this.flashSize);
+    const geo = new THREE.PlaneGeometry(1, 1);
     this.muzzleFlashMesh = new THREE.Mesh(geo, mat);
-    this.muzzleFlashMesh.position.set(0.375, -0.175, -3);
     this.muzzleFlashMesh.layers.set(1);
-    this.add(this.muzzleFlashMesh);
+    const box = new THREE.Box3().setFromObject(this);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+
+    this.muzzleFlashMesh.scale.set(...this.flashSize);
+
+    const muzzlePos = new THREE.Vector3(
+      center.x,
+      center.y + .025,
+      box.min.z
+    );
+
+    this.muzzleFlashMesh.position.copy(muzzlePos);
+    this.add(this.muzzleFlashMesh)
 
     this.muzzleFlashLight = new THREE.PointLight(0xffaa33, 0, 5);
-    this.muzzleFlashLight.position.set(0.375, -0.15, -3);
+    this.muzzleFlashLight.position.copy(muzzlePos);
     this.muzzleFlashLight.layers.enable(1);
     this.add(this.muzzleFlashLight);
   }

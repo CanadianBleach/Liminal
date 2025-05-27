@@ -138,7 +138,7 @@ function setupPostProcessingEffects(renderer, scene, camera) {
 
     // Vignette
     const vignettePass = new ShaderPass(VignetteShader);
-    vignettePass.uniforms['offset'].value = 1.0;
+    vignettePass.uniforms['offset'].value = .8;
     vignettePass.uniforms['darkness'].value = 1.2;
     composer.addPass(vignettePass);
 
