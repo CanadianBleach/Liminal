@@ -333,11 +333,18 @@ export default class GunController extends THREE.Object3D {
     const baseOffset = this.isAiming && this.canADS ? this.adsOffset : this.defaultOffset;
     const baseVec = new THREE.Vector3(...baseOffset);
 
-    const animatedOffset = baseVec.clone().add(new THREE.Vector3(
-      this.swayOffset.x + bobOffsetX,
-      bobOffsetY,
-      this.recoilOffset
-    ));
+    let animatedOffset;
+
+    if (this.isAiming && this.canADS) {
+      // 🧘 ADS should be steady, minimal sway/bob
+      animatedOffset = baseVec.clone().add(new THREE.Vector3(0, 0, this.recoilOffset));
+    } else {
+      animatedOffset = baseVec.clone().add(new THREE.Vector3(
+        this.swayOffset.x + bobOffsetX,
+        bobOffsetY,
+        this.recoilOffset
+      ));
+    }
 
     // 🧃 Reload dip animation — apply to animatedOffset
     if (this.isReloadingAnim) {
@@ -355,7 +362,8 @@ export default class GunController extends THREE.Object3D {
       }
     }
 
-    this.position.lerp(animatedOffset, delta * 10);
+    const lerpSpeed = this.isAiming ? 20 : 10; // faster lerp while aiming for snappy feel
+    this.position.lerp(animatedOffset, delta * lerpSpeed);
 
     // 🔍 FOV zoom
     if (this.canADS) {

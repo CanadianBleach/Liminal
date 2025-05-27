@@ -323,6 +323,7 @@ export const weaponConfigs = {
     ammoCapacity: 72,
     clipSize: 12,
     reloadTime: 1.6,
+    canADS: true,
     textures: {
       baseColor: '/models/handguns/textures/gun1/gun1_gun_BaseColor.png',
       normal: '/models/handguns/textures/gun1/gun1_gun_Normal.png',
