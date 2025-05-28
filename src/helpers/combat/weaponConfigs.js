@@ -133,7 +133,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun6: {
-    name: 'Autoguns Gun 6',
+    name: 'Gunny Gunner',
     model: '/models/autoguns/gun6.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -155,7 +155,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun7: {
-    name: 'Autoguns Gun 7',
+    name: 'Pea Shooter',
     model: '/models/autoguns/gun7.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -177,7 +177,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun8: {
-    name: 'Autoguns Gun 8',
+    name: 'Whack a Mole',
     model: '/models/autoguns/gun8.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -199,7 +199,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun9: {
-    name: 'Autoguns Gun 9',
+    name: 'Everett',
     model: '/models/autoguns/gun9.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -221,7 +221,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun10: {
-    name: 'Autoguns Gun 10',
+    name: 'Garbonzo Gobbler',
     model: '/models/autoguns/gun10.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -243,7 +243,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun11: {
-    name: 'Autoguns Gun 11',
+    name: 'Chickpea Pooter',
     model: '/models/autoguns/gun11.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -309,7 +309,7 @@ export const weaponConfigs = {
     }
   },
   handguns_gun1: {
-    name: 'Handguns Gun 1',
+    name: 'Pellet Puncher',
     model: '/models/handguns/gun1.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -332,7 +332,7 @@ export const weaponConfigs = {
     }
   },
   handguns_gun2: {
-    name: 'Handguns Gun 2',
+    name: 'Handy Mandy',
     model: '/models/handguns/gun2.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -354,7 +354,7 @@ export const weaponConfigs = {
     }
   },
   handguns_gun3: {
-    name: 'Handguns Gun 3',
+    name: 'Flabergaster',
     model: '/models/handguns/gun3.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -376,7 +376,7 @@ export const weaponConfigs = {
     }
   },
   handguns_gun4: {
-    name: 'Handguns Gun 4',
+    name: 'Pickle Pounder',
     model: '/models/handguns/gun4.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -398,7 +398,7 @@ export const weaponConfigs = {
     }
   },
   handguns_gun5: {
-    name: 'Handguns Gun 5',
+    name: 'Ice King',
     model: '/models/handguns/gun5.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -420,7 +420,7 @@ export const weaponConfigs = {
     }
   },
   handguns_gun6: {
-    name: 'Handguns Gun 6',
+    name: 'Swiss Cheeser',
     model: '/models/handguns/gun6.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -442,14 +442,14 @@ export const weaponConfigs = {
     }
   },
   handguns_gun7: {
-    name: 'Handguns Gun 7',
+    name: 'Not a Switch',
     model: '/models/handguns/gun7.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
     fireRate: 0.45,
     damage: 30,
     recoil: 0.05,
-    fireMode: 'semi',
+    fireMode: 'auto',
     modelScale: [0.05, 0.05, 0.05],
     modelOffset: [0.2, -0.1, -0.2],
     flashSize: [5, 5],
@@ -464,7 +464,7 @@ export const weaponConfigs = {
     }
   },
   handguns_gun8: {
-    name: 'Handguns Gun 8',
+    name: 'Hole Puncher',
     model: '/models/handguns/gun8.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -486,7 +486,7 @@ export const weaponConfigs = {
     }
   },
   miniguns_gun1: {
-    name: 'Miniguns Gun 1',
+    name: 'Stapler',
     model: '/models/miniguns/gun1.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -508,7 +508,7 @@ export const weaponConfigs = {
     }
   },
   miniguns_gun2: {
-    name: 'Miniguns Gun 2',
+    name: 'Gatlinburg',
     model: '/models/miniguns/gun2.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -530,7 +530,7 @@ export const weaponConfigs = {
     }
   },
   shotguns_gun1: {
-    name: 'Shotguns Gun 1',
+    name: 'Shartgun',
     model: '/models/shotguns/gun1.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -552,7 +552,7 @@ export const weaponConfigs = {
     }
   },
   shotguns_gun2: {
-    name: 'Shotguns Gun 2',
+    name: 'Shitgun',
     model: '/models/shotguns/gun2.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -574,7 +574,7 @@ export const weaponConfigs = {
     }
   },
   shotguns_gun3: {
-    name: 'Shotguns Gun 3',
+    name: 'Shootgun',
     model: '/models/shotguns/gun3.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -596,7 +596,7 @@ export const weaponConfigs = {
     }
   },
   shotguns_gun4: {
-    name: 'Shotguns Gun 4',
+    name: 'Shoneys',
     model: '/models/shotguns/gun4.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -618,7 +618,7 @@ export const weaponConfigs = {
     }
   },
   sniper_rifle_gun1: {
-    name: 'Sniper Rifle Gun 1',
+    name: 'Waffle Home',
     model: '/models/sniper_rifle/gun1.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,

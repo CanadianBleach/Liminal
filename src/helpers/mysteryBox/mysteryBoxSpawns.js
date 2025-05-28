@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export const mysteryBoxSpawns = [
         {
         name: 'Across Map',
-        position: new THREE.Vector3(3.5, .25, 14.5),
+        position: new THREE.Vector3(-1.5, .25, 10.5),
         spawnChance: 1
     },
 ];

@@ -135,7 +135,6 @@ export class Enemy {
       if (this.damageTimer >= this.damageInterval) {
         this.damageTimer = 0;
         playerState.health.current = Math.max(0, playerState.health.current - this.damageAmount);
-        console.log(`Player damaged by enemy ${this.id}, health now:`, playerState.health.current);
         flashDamageOverlay();
       }
     } else {
@@ -164,11 +163,8 @@ export class Enemy {
     if (this.destroyed) return; // 🛑 hard stop
     this.destroyed = true;
 
-    console.log(`Destroy called for enemy ${this.id}`);
-
     if (this.enemyManager) {
       this.enemyManager.killsThisRound += 1;
-      console.log(`Enemy ${this.id} killed, kills this round:`, this.enemyManager.killsThisRound);
     }
 
     if (this.playerController) {
