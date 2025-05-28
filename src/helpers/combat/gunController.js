@@ -139,14 +139,28 @@ export default class GunController extends THREE.Object3D {
       side: THREE.DoubleSide,
     });
 
-    const geo = new THREE.PlaneGeometry(...this.flashSize);
+    const geo = new THREE.PlaneGeometry(1, 1);
     this.muzzleFlashMesh = new THREE.Mesh(geo, mat);
-    this.muzzleFlashMesh.position.set(0.375, -0.175, -3);
     this.muzzleFlashMesh.layers.set(1);
-    this.add(this.muzzleFlashMesh);
+    const box = new THREE.Box3().setFromObject(this);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+
+    this.muzzleFlashMesh.scale.set(...this.flashSize);
+
+    const muzzlePos = new THREE.Vector3(
+      center.x,
+      center.y + .025,
+      box.min.z
+    );
+
+    this.muzzleFlashMesh.position.copy(muzzlePos);
+    this.add(this.muzzleFlashMesh)
 
     this.muzzleFlashLight = new THREE.PointLight(0xffaa33, 0, 5);
-    this.muzzleFlashLight.position.set(0.375, -0.15, -3);
+    this.muzzleFlashLight.position.copy(muzzlePos);
     this.muzzleFlashLight.layers.enable(1);
     this.add(this.muzzleFlashLight);
   }
@@ -319,11 +333,18 @@ export default class GunController extends THREE.Object3D {
     const baseOffset = this.isAiming && this.canADS ? this.adsOffset : this.defaultOffset;
     const baseVec = new THREE.Vector3(...baseOffset);
 
-    const animatedOffset = baseVec.clone().add(new THREE.Vector3(
-      this.swayOffset.x + bobOffsetX,
-      bobOffsetY,
-      this.recoilOffset
-    ));
+    let animatedOffset;
+
+    if (this.isAiming && this.canADS) {
+      // 🧘 ADS should be steady, minimal sway/bob
+      animatedOffset = baseVec.clone().add(new THREE.Vector3(0, 0, this.recoilOffset));
+    } else {
+      animatedOffset = baseVec.clone().add(new THREE.Vector3(
+        this.swayOffset.x + bobOffsetX,
+        bobOffsetY,
+        this.recoilOffset
+      ));
+    }
 
     // 🧃 Reload dip animation — apply to animatedOffset
     if (this.isReloadingAnim) {
@@ -341,7 +362,8 @@ export default class GunController extends THREE.Object3D {
       }
     }
 
-    this.position.lerp(animatedOffset, delta * 10);
+    const lerpSpeed = this.isAiming ? 20 : 10; // faster lerp while aiming for snappy feel
+    this.position.lerp(animatedOffset, delta * lerpSpeed);
 
     // 🔍 FOV zoom
     if (this.canADS) {

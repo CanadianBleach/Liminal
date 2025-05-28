@@ -65,7 +65,7 @@ export class PlayerController {
       },
       inventory: {
         slots: [null, null], // slot 0 and 1 for guns
-        melee: weaponConfigs.karambit,
+        melee: weaponConfigs.knife,
         activeSlot: 0 // index of currently active gun slot
       },
       killCount: 0,
@@ -95,8 +95,11 @@ export class PlayerController {
           break;
 
         case 'ShiftLeft':
-          this.state.keys.sprint = true;
-          this.state.lastSprintTime = performance.now() / 1000;
+          if (this.state.sprintTime > 0 && this.state.sprintReleased) {
+            this.state.keys.sprint = true;
+            this.state.lastSprintTime = performance.now() / 1000;
+            this.state.sprintReleased = false;
+          }
           break;
         case 'ControlLeft':
           this.state.isCrouching = true;
@@ -126,7 +129,8 @@ export class PlayerController {
           this.switchSlot(1);
           break;
         case 'Digit3':
-          this.switchSlot(-1);
+          console.log("SWITCH TO SLOT -1 TO ENABLE KNIFE");
+          //this.switchSlot(-1);
           break;
       }
     });
@@ -137,7 +141,10 @@ export class PlayerController {
         case 'KeyS': this.state.keys.backward = false; break;
         case 'KeyA': this.state.keys.left = false; break;
         case 'KeyD': this.state.keys.right = false; break;
-        case 'ShiftLeft': this.state.keys.sprint = false; this.state.sprintReleased = true; break;
+        case 'ShiftLeft':
+          this.state.keys.sprint = false;
+          this.state.sprintReleased = true;
+          break;
         case 'ControlLeft': this.state.isCrouching = false; break;
         case 'Space': this.state.keys.jump = false; break;
       }
@@ -363,7 +370,14 @@ export class PlayerController {
   }
 
   _updateFOV(camera, delta) {
-    const targetFov = this.state.keys.sprint ? this.config.SPRINT_FOV : this.config.BASE_FOV;
+    let targetFov = this.config.BASE_FOV;
+
+    if (gunManager.currentGun?.isAiming && gunManager.currentGun?.canADS) {
+      targetFov = gunManager.currentGun.adsFOV;
+    } else if (this.state.keys.sprint) {
+      targetFov = this.config.SPRINT_FOV;
+    }
+
     camera.fov += (targetFov - camera.fov) * 10 * delta;
     camera.updateProjectionMatrix();
   }

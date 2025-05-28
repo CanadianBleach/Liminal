@@ -15,7 +15,7 @@ export function loadGLBModel(scene, rapierWorld) {
 
     const model = gltf.scene;
     model.position.set(-5, 0, 0);
-    model.scale.set(2.5, 2.5, 2.5);
+    model.scale.set(1.5, 1.5, 1.5);
 
     model.traverse((child) => {
       if (child.isMesh) {
