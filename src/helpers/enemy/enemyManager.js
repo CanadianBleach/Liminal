@@ -48,15 +48,20 @@ export class EnemyManager {
 
     const [typeKey, typeCfg] = eligibleTypes[Math.floor(Math.random() * eligibleTypes.length)];
 
-    // 🔽 Handle 'custom' texture from localStorage
     if (typeKey === 'custom') {
       const base64Image = localStorage.getItem('enemyTexture');
       if (base64Image) {
         const blob = base64ToBlob(base64Image, 'image/png');
         typeCfg.texture = URL.createObjectURL(blob);
       } else {
-        console.warn("Custom enemy selected but no 'enemyTexture' found in localStorage.");
-        return;
+        console.warn("Custom enemy selected but no 'enemyTexture' found. Falling back to random.");
+
+        // Filter out 'custom' and pick a different enemy
+        const fallbackTypes = Object.entries(enemyTypes).filter(([key, cfg]) => key !== 'custom' && cfg.tier <= this.waveNumber);
+        if (fallbackTypes.length === 0) return;
+
+        const [fallbackKey, fallbackCfg] = fallbackTypes[Math.floor(Math.random() * fallbackTypes.length)];
+        typeCfg.texture = fallbackCfg.texture;
       }
     }
 

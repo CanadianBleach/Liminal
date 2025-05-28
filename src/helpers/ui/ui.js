@@ -190,10 +190,10 @@ export function updateFlashlightUI(flashlightState) {
     batteryBar.style.backgroundColor = 'red';
   }
 }
+
 let currentRound = 1;
 let lastKillCount = 0;
 let lastWaveNumber = 0;
-
 
 function checkForRoundUpdate(enemyManager) {
   const currentWave = enemyManager.waveNumber;
