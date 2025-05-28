@@ -130,27 +130,46 @@ export default class GunController extends THREE.Object3D {
   }
 
   addArms(wrapper) {
-    const armMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
-
-    const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 2), armMaterial);
-    const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 2), armMaterial);
+    const armMaterial = new THREE.MeshStandardMaterial({ color: 0xffdbac }); // hand/arm
+    const sleeveMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 }); // sleeve
   
-    // Adjust based on your gun’s modelOffset and scale
-    leftArm.position.set(0.3  , -0, -2);
-    rightArm.position.set(2, -1, -2);
+    // === LEFT ARM GROUP ===
+    const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 4), armMaterial);
+    const leftSleeve = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 3.5), sleeveMaterial);
   
-    leftArm.castShadow = rightArm.castShadow = true;
+    const leftGroup = new THREE.Group();
+    leftArm.position.set(0, 0, 0);
+    leftSleeve.position.set(0, 0, -0.8); // sleeve sits back a bit
+    leftGroup.add(leftArm, leftSleeve);
+    leftGroup.position.set(0, -0.5, -1.7); // move whole left group
   
-    wrapper.add(leftArm);
-    wrapper.add(rightArm);
+    // === RIGHT ARM GROUP ===
+    const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 3.5), armMaterial);
+    const rightSleeve = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 4), sleeveMaterial);
+  
+    const rightGroup = new THREE.Group();
+    rightArm.position.set(0, 0, 0);
+    rightSleeve.position.set(0, 0, -0.8); // sleeve sits back a bit
+    rightGroup.add(rightArm, rightSleeve);
+    rightGroup.position.set(1.5, -1, -2);
+    rightGroup.rotation.set(-0.3, -0.5, 0); // rotate whole right group
+  
+    // Disable shadows and set layers
+    [leftArm, leftSleeve, rightArm, rightSleeve].forEach(mesh => {
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+      mesh.layers.set(1);
+    });
+  
+    wrapper.add(leftGroup, rightGroup);
   
     // Optional: store references
-    this.leftArm = leftArm;
-    this.rightArm = rightArm;
-    this.leftArm.layers.set(1);
-    this.rightArm.layers.set(1);
-
+    this.leftArmGroup = leftGroup;
+    this.rightArmGroup = rightGroup;
   }
+  
+  
+  
   
 
   attachMuzzleFlash() {
