@@ -28,6 +28,8 @@ export async function initMainScene() {
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
     const deathOverlay = setupDeathOverlay();
+    let hasDied = false;
+
     setupRoundIndicator();
     setupDamageOverlay();
 
@@ -77,7 +79,8 @@ export async function initMainScene() {
 
         if (player.state.health.current <= 0) {
             deathOverlay.style.opacity = '1';
-            setTimeout(() => window.location.reload(), 2000);
+            showDeathMessage();
+            setTimeout(() => window.location.reload(), 5000);
         }
 
         // Sync gun camera

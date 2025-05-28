@@ -1,5 +1,6 @@
 import { playSound } from "../sounds/audio";
 
+
 let batteryBar;
 let deathOverlay;
 let killCounter;
@@ -7,6 +8,8 @@ let scoreCounter;
 
 let healthBar;
 let sprintBar;
+let deathMessageOverlay;
+
 
 let ammoCurrent;
 let ammoReserve;
@@ -174,6 +177,59 @@ export function setupRoundIndicator() {
   document.body.appendChild(roundOverlay);
   return roundOverlay;
 }
+
+export function setupDeathMessageOverlay() {
+  deathMessageOverlay = document.createElement('div');
+  deathMessageOverlay.id = 'death-message-overlay';
+  Object.assign(deathMessageOverlay.style, {
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%) scale(1.5)',
+    opacity: '0',
+    zIndex: '9999',
+    pointerEvents: 'none',
+    transition: 'opacity 1s ease, transform 1s ease',
+  });
+
+  const img = document.createElement('img');
+  img.src = './textures/death.png'; // 🔁 adjust path to your PNG
+  Object.assign(img.style, {
+    width: '2000px',           // 🔁 increase width as much as you like
+    height: 'auto',
+    display: 'block',
+    maxWidth: 'none',          // ✅ allow overflow
+  });
+  
+
+  deathMessageOverlay.appendChild(img);
+  document.body.appendChild(deathMessageOverlay);
+}
+
+
+
+export function showDeathMessage() {
+  
+  console.log('showDeathMessage() called');
+
+  if (!deathMessageOverlay) {
+    console.warn('deathMessageOverlay not defined');
+    return;
+  }
+  
+  playSound('wasted');
+
+  // Reset state
+  deathMessageOverlay.style.opacity = '0';
+  deathMessageOverlay.style.transform = 'translate(-50%, -50%) scale(1.5)';
+  deathMessageOverlay.offsetHeight; // Force reflow
+
+  // Animate in
+  deathMessageOverlay.style.opacity = '1';
+  deathMessageOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+}
+
+
 
 
 export function updateFlashlightUI(flashlightState) {

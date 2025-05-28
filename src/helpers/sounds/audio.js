@@ -45,6 +45,7 @@ export function loadSounds(camera) {
   loadSound('end_reload', './sounds/combat/end_reload.mp3');
 
   loadSound('round_change', './sounds/round_change.mp3');
+  loadSound('wasted', './sounds/wasted.mp3');
   loadSound('flashlight_click', './sounds/flashlight_click.mp3');
 
   // Box
