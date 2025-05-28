@@ -28,7 +28,7 @@ export class Enemy {
     this.originalColor = new THREE.Color(0xffffff);
     this.damageInterval = 1.5;
     this.damageTimer = 0;
-    this.minDistanceToPlayer = 1;
+    this.minDistanceToPlayer = 1.5;
 
     this.texture = texture;
     this.mesh = this._createMesh(position);
@@ -90,8 +90,9 @@ export class Enemy {
   update(playerPosition, delta, playerState) {
     const dir = new THREE.Vector3().subVectors(playerPosition, this.mesh.position);
     const dist = dir.length();
+    const overlapThreshold = 1.0;
 
-    if (dist > this.minDistanceToPlayer) {
+    if (dist > this.minDistanceToPlayer && dist > overlapThreshold) {
       dir.normalize();
       this.mesh.position.add(dir.multiplyScalar(this.moveSpeed * delta));
     }
@@ -144,43 +145,43 @@ export class Enemy {
 
   takeDamage(amount) {
     if (!this.alive) return;
-  
+
     this.health -= amount;
-  
+
     if (this.mesh?.material) {
       this.mesh.material.color.set(0xff0000);
       this.hitFlashTime = 0.05;
     }
-  
+
     if (this.health <= 0) {
       this.alive = false;
       this.destroy();
     }
-  }  
-  
+  }
+
 
   destroy() {
     if (this.destroyed) return; // 🛑 hard stop
     this.destroyed = true;
-  
+
     console.log(`Destroy called for enemy ${this.id}`);
-  
+
     if (this.enemyManager) {
       this.enemyManager.killsThisRound += 1;
       console.log(`Enemy ${this.id} killed, kills this round:`, this.enemyManager.killsThisRound);
     }
-  
+
     if (this.playerController) {
       this.playerController.state.killCount += 1;
       this.playerController.state.score += this.pointValue ?? 50;
     }
-  
+
     if (this.mesh) {
       this.scene.remove(this.mesh);
       this.mesh.geometry?.dispose();
       this.mesh.material?.dispose();
     }
-  
+
     if (this.collider) {
       this.rapierWorld.removeCollider(this.collider, true);
     }
