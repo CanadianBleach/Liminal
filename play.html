@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <title>Liminal</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <!-- Styles -->
     <link rel="stylesheet" href="/src/css/play.css" />
   </head>
   <body>
@@ -16,32 +25,36 @@
       <canvas id="game-canvas"></canvas>
     </div>
 
-    <!-- UI Overlay (initially hidden) -->
+    <!-- UI Overlay -->
     <div id="game-ui" class="hidden">
       <div id="crosshair">
         <div class="line top"></div>
         <div class="line bottom"></div>
         <div class="line left"></div>
         <div class="line right"></div>
-      </div>      
-    <div id="game-ui">
+      </div>
+
       <div class="top-bar">
         <div class="health-container">
-          <div class="icon">❤️</div>
+          <div class="icon"><i class="fas fa-heart"></i></div>
           <div class="bar-bg">
             <div class="bar health-bar" id="health-bar"></div>
           </div>
         </div>
 
         <div class="battery-container">
-          <div class="icon">🔋</div>
+          <div class="icon"><i class="fas fa-battery-full"></i></div>
           <div class="bar-bg">
             <div class="bar battery-bar" id="battery-bar"></div>
           </div>
         </div>
 
-        <div class="kills">☠️ Kills: <span id="kill-count">0</span></div>
-        <div class="score">💰 Score: <span id="score-count">0</span></div>
+        <div class="kills">
+          <i class="fas fa-skull-crossbones"></i> Kills: <span id="kill-count">0</span>
+        </div>
+        <div class="score">
+          <i class="fas fa-money-bill-wave"></i> Score: <span id="score-count">0</span>
+        </div>
       </div>
 
       <div class="bottom-bar">
@@ -56,12 +69,9 @@
         </div>
 
         <div class="ammo">
-          🔫 Ammo: <span id="ammo-current">10</span>/<span id="ammo-reserve"
-            >30</span
-          >
+          <i class="fas fa-gun"></i> Ammo: <span id="ammo-current">10</span>/<span id="ammo-reserve">30</span>
         </div>
       </div>
-
     </div>
 
     <!-- Game Logic -->
