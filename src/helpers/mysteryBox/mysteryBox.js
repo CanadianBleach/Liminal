@@ -19,7 +19,7 @@ export class MysteryBox {
         this.pendingWeapon = null;
         this.pendingTimeout = null;
 
-        this.cost = 50;
+        this.cost = 125;
 
         const loader = new GLTFLoader();
         loader.load('/models/mysteryBox/mystery_box.glb', (glb) => {

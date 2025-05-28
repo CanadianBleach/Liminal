@@ -39,7 +39,7 @@ export class EnemyManager {
       return; // Stop spawning for now
     }
 
-    const pos = new THREE.Vector3(Math.random() * 20 - 10, 1.5, Math.random() * 20 - 10);
+    const pos = new THREE.Vector3(Math.random() * 50 - 10, 1.5, Math.random() * 50 - 10);
 
     const eligibleTypes = Object.entries(enemyTypes)
       .filter(([_, cfg]) => cfg.tier <= this.waveNumber);
