@@ -39,6 +39,7 @@ export function loadSounds(camera) {
   loadSound('gunshot_1', './sounds/gunshot_1.MP3');
   loadSound('gunshot_2', './sounds/gunshot_2.MP3');
   loadSound('gunshot_3', './sounds/gunshot_3.MP3');
+  loadSound('dry_fire', './sounds/combat/dry_fire.mp3');
 
   loadSound('start_reload', './sounds/combat/start_reload.mp3');
   loadSound('end_reload', './sounds/combat/end_reload.mp3');
