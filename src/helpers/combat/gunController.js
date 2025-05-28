@@ -123,10 +123,35 @@ export default class GunController extends THREE.Object3D {
       wrapper.traverse(obj => obj.layers.set(1));
 
       this.attachMuzzleFlash();
+      this.addArms(wrapper);    // 👈 this line adds arms
     } catch (err) {
       console.error(`Failed to load model for "${this.config.name}" at "${this.modelPath}":`, err);
     }
   }
+
+  addArms(wrapper) {
+    const armMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+
+    const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 2), armMaterial);
+    const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 2), armMaterial);
+  
+    // Adjust based on your gun’s modelOffset and scale
+    leftArm.position.set(0.3  , -0, -2);
+    rightArm.position.set(2, -1, -2);
+  
+    leftArm.castShadow = rightArm.castShadow = true;
+  
+    wrapper.add(leftArm);
+    wrapper.add(rightArm);
+  
+    // Optional: store references
+    this.leftArm = leftArm;
+    this.rightArm = rightArm;
+    this.leftArm.layers.set(1);
+    this.rightArm.layers.set(1);
+
+  }
+  
 
   attachMuzzleFlash() {
     const texture = new THREE.TextureLoader().load(this.texturePath);
