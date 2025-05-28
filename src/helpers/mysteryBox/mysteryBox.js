@@ -22,7 +22,7 @@ export class MysteryBox {
         this.cost = 125;
 
         const loader = new GLTFLoader();
-        loader.load('/models/mysteryBox/mystery_box.glb', (glb) => {
+        loader.load('/models/mystery_box.glb', (glb) => {
             const { wrapper, collider } = this.setupModelWithCollider({
                 model: glb.scene,
                 position: this.boxSpawn.position,
