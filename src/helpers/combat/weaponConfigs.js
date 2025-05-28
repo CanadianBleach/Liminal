@@ -23,7 +23,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun1: {
-    name: 'Autoguns Gun 1',
+    name: 'Auto McShootster',
     model: '/models/autoguns/gun1.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -45,7 +45,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun2: {
-    name: 'Autoguns Gun 2',
+    name: 'Shooty Shooter',
     model: '/models/autoguns/gun2.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -67,7 +67,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun3: {
-    name: 'Autoguns Gun 3',
+    name: 'Bullet Bully',
     model: '/models/autoguns/gun3.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -89,7 +89,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun4: {
-    name: 'Autoguns Gun 4',
+    name: 'Freak on a leash',
     model: '/models/autoguns/gun4.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,
@@ -111,7 +111,7 @@ export const weaponConfigs = {
     }
   },
   autoguns_gun5: {
-    name: 'Autoguns Gun 5',
+    name: 'Shootster McGee',
     model: '/models/autoguns/gun5.fbx',
     muzzleFlashTexture: '/textures/muzzle1.png',
     mysteryBoxEligible: true,

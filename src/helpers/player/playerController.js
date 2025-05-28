@@ -341,9 +341,10 @@ export class PlayerController {
       const box = hit.collider.userData.interactRef;
 
       if (box.pendingWeapon) {
-        showInteractPrompt(`Press E to take ${box.pendingWeapon}`);
+        const weaponName = weaponConfigs[box.pendingWeapon]?.name || box.pendingWeapon;
+        showInteractPrompt(`Press E to take ${weaponName}`);
       } else if (box.rolling) {
-        showInteractPrompt("ROLLING ROLLING ROLLING ROLLING")
+        showInteractPrompt("ROLLING ROLLING ROLLING ROLLING");
       } else if (this.state.score < box.cost) {
         showInteractPrompt("You need more points!");
       } else {

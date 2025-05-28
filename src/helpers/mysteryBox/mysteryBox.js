@@ -155,6 +155,7 @@ export class MysteryBox {
             console.log(`Mystery box rolled: ${selectedWeapon}`);
 
             this.pendingWeapon = selectedWeapon;
+            console.log(this.pendingWeapon.name);
             this.rolling = false;
 
             this.pendingTimeout = setTimeout(() => {
