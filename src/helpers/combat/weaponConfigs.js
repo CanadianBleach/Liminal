@@ -589,10 +589,10 @@ export const weaponConfigs = {
     clipSize: 8,
     reloadTime: 3.0,
     textures: {
-      baseColor: '/models/shotguns/textures/gun3_detail/gun3_detail_BaseColor.png',
-      normal: '/models/shotguns/textures/gun3_detail/gun3_detail_Normal.png',
-      metallic: '/models/shotguns/textures/gun3_detail/gun3_dtail_Metallic.png',
-      roughness: '/models/shotguns/textures/gun3_detail/gun3_detail_Roughness.png'
+      baseColor: '/models/shotguns/textures/gun3_detail/gun3_detail_bullet_BaseColor.png',
+      normal: '/models/shotguns/textures/gun3_detail/gun3_detail_bullet_Normal.png',
+      metallic: '/models/shotguns/textures/gun3_detail/gun3_detail_bullet_Metallic.png',
+      roughness: '/models/shotguns/textures/gun3_detail/gun3_detail_bullet_Roughness.png'
     }
   },
   shotguns_gun4: {
