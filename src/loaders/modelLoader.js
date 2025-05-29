@@ -7,7 +7,7 @@ export const flickeringLights = [];
 export function loadGLBModel(scene, rapierWorld) {
   const loader = new GLTFLoader();
 
-  loader.load('/models/backroom_lit.glb', (gltf) => {
+  loader.load('/models/map/backroom_lit.glb', (gltf) => {
     if (!gltf.scene) {
       console.error('GLTF loaded but has no scene:', gltf);
       return;
