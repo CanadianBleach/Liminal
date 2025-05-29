@@ -215,7 +215,7 @@ export class PlayerController {
     gunManager.switchWeapon(weaponKey);
     console.log(`Switched to slot ${index + 1}: ${weaponKey}`);
   }
-
+//setgun
   initializeLoadout() {
     this.state.inventory.slots[0] = 'handguns_gun1';
     this.state.inventory.activeSlot = 0;
