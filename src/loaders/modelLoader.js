@@ -8,7 +8,7 @@ export function loadGLBModel(scene, rapierWorld) {
   return new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
     loader.load(
-      '/models/backroom_lit.glb',
+      '/models/map/backroom_lit.glb',
       (gltf) => {
         if (!gltf.scene) {
           reject('GLTF has no scene');
