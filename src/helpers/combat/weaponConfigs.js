@@ -280,10 +280,10 @@ export const weaponConfigs = {
     clipSize: 30,
     reloadTime: 2.5,
     textures: {
-      baseColor: '/models/grenade/textures/launchers/gun1_BaseColor.png',
-      normal: '/models/grenade_launchers/textures/launchers/gun1_Normal.png',
-      metallic: '/models/grenade_launchers/textures/launchers/gun1_Metallic.png',
-      roughness: '/models/grenade_launchers/textures/launchers/gun1_Roughness.png'
+      baseColor: '/models/grenade_luanchers/textures/gun1/gun1_gun_BaseColor.png',
+      normal: '/models/grenade_luanchers/textures/gun1/gun1_gun_Normal.png',
+      metallic: '/models/grenade_luanchers/textures/gun1/gun1_gun_Metallic.png',
+      roughness: '/models/grenade_luanchers/textures/gun1/gun1_gun_Roughness.png'
     }
   },
   grenade_launchers_gun2: {
@@ -302,10 +302,10 @@ export const weaponConfigs = {
     clipSize: 30,
     reloadTime: 2.5,
     textures: {
-      baseColor: '/models/grenade_launchers/textures/grenade_launchers/gun2_BaseColor.png',
-      normal: '/models/grenade_launchers/textures/grenade_launchers/gun2_Normal.png',
-      metallic: '/models/grenade_launchers/textures/grenade_launchers/gun2_Metallic.png',
-      roughness: '/models/grenade_launchers/textures/grenade_launchers/gun2_Roughness.png'
+      baseColor: '/models/grenade_launchers/textures/gun2/gun2_gun_BaseColor.png',
+      normal: '/models/grenade_launchers/textures/gun2/gun2_gun_Normal.png',
+      metallic: '/models/grenade_launchers/textures/gun2/gun2_gun_Metallic.png',
+      roughness: '/models/grenade_launchers/textures/gun2/gun2_gun_Roughness.png'
     }
   },
   handguns_gun1: {
@@ -589,10 +589,10 @@ export const weaponConfigs = {
     clipSize: 8,
     reloadTime: 3.0,
     textures: {
-      baseColor: '/models/shotguns/textures/gun3_detail/gun3_detail_gun_BaseColor.png',
-      normal: '/models/shotguns/textures/gun3_detail/gun3_detail_gun_Normal.png',
-      metallic: '/models/shotguns/textures/gun3_detail/gun3_detail_gun_Metallic.png',
-      roughness: '/models/shotguns/textures/gun3_detail/gun3_detail_gun_Roughness.png'
+      baseColor: '/models/shotguns/textures/gun3/gun3_gun_BaseColor.png',
+      normal: '/models/shotguns/textures/gun3/gun3_gun_Normal.png',
+      metallic: '/models/shotguns/textures/gun3/gun3_gun_Metallic.png',
+      roughness: '/models/shotguns/textures/gun3/gun3_gun_Roughness.png'
     }
   },
   shotguns_gun4: {
@@ -633,10 +633,10 @@ export const weaponConfigs = {
     clipSize: 30,
     reloadTime: 2.5,
     textures: {
-      baseColor: '/models/sniper_rifle/textures/gun1_gun_BaseColor.png',
-      normal: '/models/sniper_rifle/textures/gun1_gun_Normal.png',
-      metallic: '/models/sniper_rifle/textures/gun1_gun_Metallic.png',
-      roughness: '/models/sniper_rifle/textures/gun1_gun_Roughness.png'
+      baseColor: '/models/sniper_rifle/textures/gun1/gun1_gun_BaseColor.png',
+      normal: '/models/sniper_rifle/textures/gun1/gun1_gun_Normal.png',
+      metallic: '/models/sniper_rifle/textures_gun1/gun1_gun_Metallic.png',
+      roughness: '/models/sniper_rifle/textures_gun1/gun1_gun_Roughness.png'
     }
   },
 };
