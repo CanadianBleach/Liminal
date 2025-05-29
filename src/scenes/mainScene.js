@@ -35,6 +35,7 @@ export async function initMainScene() {
 
     await RAPIER.init();
     const rapierWorld = new RAPIER.World(new RAPIER.Vector3(0, -9.81, 0));
+    await loadGLBModel(scene, rapierWorld);
     const player = new PlayerController(rapierWorld, controls, cameraWrapper, tiltContainer);
     const mysteryBox = new MysteryBox(scene, rapierWorld, player);
     const enemyManager = new EnemyManager(scene, camera, rapierWorld, player);
@@ -42,7 +43,6 @@ export async function initMainScene() {
 
     player.initializeLoadout();
 
-    await loadGLBModel(scene, rapierWorld);
     setupLighting(scene);
 
     const { flashlight, flashlightTarget } = createFlashlight();
