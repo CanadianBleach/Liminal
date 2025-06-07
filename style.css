@@ -5,6 +5,28 @@ body {
   background-color: #000;
 }
 
+.tooltip {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 250px;
+  z-index: 1000;
+}
+
+.tooltip kbd {
+  background: #333;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 13px;
+}
+
 /* === GAME CANVAS === */
 #game-container {
   background-color: #000;
@@ -47,8 +69,13 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* === UI OVERLAY === */
@@ -67,7 +94,6 @@ body {
 #game-ui.visible {
   opacity: 1;
 }
-
 
 #hud {
   position: absolute;
@@ -242,10 +268,18 @@ button:hover::before {
 }
 
 /* === SPREAD EFFECT (expansion) === */
-.crosshair-spread .top    { transform: translateY(-6px); }
-.crosshair-spread .bottom { transform: translateY(6px); }
-.crosshair-spread .left   { transform: translateX(-6px); }
-.crosshair-spread .right  { transform: translateX(6px); }
+.crosshair-spread .top {
+  transform: translateY(-6px);
+}
+.crosshair-spread .bottom {
+  transform: translateY(6px);
+}
+.crosshair-spread .left {
+  transform: translateX(-6px);
+}
+.crosshair-spread .right {
+  transform: translateX(6px);
+}
 
 /* === FLASH EFFECT (color + glow) === */
 .line.crosshair-flash {
@@ -253,10 +287,24 @@ button:hover::before {
 }
 
 @keyframes crosshairFlashSingle {
-  0%   { background-color: white; box-shadow: none; }
-  25%  { background-color: orange; box-shadow: 0 0 6px orange; }
-  50%  { background-color: yellow; box-shadow: 0 0 8px yellow; }
-  75%  { background-color: red; box-shadow: 0 0 6px red; }
-  100% { background-color: white; box-shadow: none; }
+  0% {
+    background-color: white;
+    box-shadow: none;
+  }
+  25% {
+    background-color: orange;
+    box-shadow: 0 0 6px orange;
+  }
+  50% {
+    background-color: yellow;
+    box-shadow: 0 0 8px yellow;
+  }
+  75% {
+    background-color: red;
+    box-shadow: 0 0 6px red;
+  }
+  100% {
+    background-color: white;
+    box-shadow: none;
+  }
 }
-
