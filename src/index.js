@@ -22,6 +22,7 @@ startButton.addEventListener("click", () => {
 
 clearButton.addEventListener("click", () => {
     localStorage.clear();
+    uploadButton.textContent = "Upload Enemy";
 });
 
 // Upload Button Behavior

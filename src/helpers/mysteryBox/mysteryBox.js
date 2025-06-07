@@ -87,6 +87,16 @@ export class MysteryBox {
         // ✅ Claim weapon if one is waiting
         if (this.pendingWeapon) {
             this.player.pickupWeapon(this.pendingWeapon);
+
+            // ✅ Reset ammo for the new weapon
+            const config = weaponConfigs[this.pendingWeapon];
+            if (config) {
+                this.player.state.ammo[this.pendingWeapon] = {
+                    current: config.magazineSize,
+                    reserve: config.reserveAmmo ?? (config.magazineSize * 3)
+                };
+            }
+
             this.pendingWeapon = null;
             clearTimeout(this.pendingTimeout);
             console.log("Weapon claimed.");
