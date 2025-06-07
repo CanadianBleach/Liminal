@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as RAPIER from '@dimforge/rapier3d-compat';
 import { flashDamageOverlay } from '../ui/ui.js';
 import { base64ToBlob } from '../ui/imageLoader.js';
+import { AudioListener, PositionalAudio, AudioLoader } from 'three';
 
 let enemyCounter = 0;
 
@@ -32,13 +33,56 @@ export class Enemy {
     this.hasEnteredAttackRadius = false;
 
     this.texture = texture;
+    this.config = config;
+    this.audioLoader = new AudioLoader();
+    this.sound = null;
+    this.soundTimer = 0;
+
     this.mesh = this._createMesh(position);
     this.scene.add(this.mesh);
+
+    this._initAudio(); // ✅ Now it's safe
 
     this.collider = this._createCollider(position);
 
     this.onDeathEffect = config.onDeathEffect ?? null;
   }
+
+  _initAudio() {
+    const soundFile = this.config.soundFile;
+    if (!soundFile || !this.playerController?.camera) return;
+
+    // Ensure the camera has a listener
+    let listener = this.playerController.camera.children.find(c => c instanceof AudioListener);
+    if (!listener) {
+      listener = new AudioListener();
+      this.playerController.camera.add(listener);
+    }
+
+    this.sound = new PositionalAudio(listener);
+    this.soundReady = false; // 🔒 Flag to check readiness
+    this.mesh.add(this.sound);
+
+    this.audioLoader.load(
+      soundFile,
+      (buffer) => {
+        this.sound.setBuffer(buffer);
+        this.sound.setRefDistance(10);
+        this.sound.setMaxDistance(100);
+        this.sound.setLoop(this.config.loopSound ?? false);
+        this.soundReady = true;
+
+        if (this.config.loopSound) {
+          this.sound.play();
+        }
+      },
+      undefined,
+      (err) => {
+        console.error("Failed to load enemy sound:", err);
+      }
+    );
+  }
+
 
   _createMesh(position) {
     const material = new THREE.MeshBasicMaterial({
@@ -150,6 +194,19 @@ export class Enemy {
       this.damageTimer = 0;
       this.hasEnteredAttackRadius = false;
     }
+
+    if (this.sound && this.soundReady && !this.config.loopSound) {
+      this.soundTimer += delta;
+      const interval = this.config.soundInterval ?? 5;
+      if (this.soundTimer >= interval) {
+        if (!this.sound.isPlaying) {
+          this.sound.play();
+        }
+        this.soundTimer = 0;
+      }
+    }
+
+
   }
 
   takeDamage(amount) {
@@ -190,6 +247,10 @@ export class Enemy {
 
     if (this.collider) {
       this.rapierWorld.removeCollider(this.collider, true);
+    }
+    if (this.sound) {
+      this.sound.stop();
+      this.mesh.remove(this.sound);
     }
   }
 }
