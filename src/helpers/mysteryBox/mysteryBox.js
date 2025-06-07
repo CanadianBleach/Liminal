@@ -75,22 +75,6 @@ export class MysteryBox {
 
         const collider = rapierWorld.createCollider(colliderDesc, body);
 
-                 // 5. Debug mesh
-                let debugMesh = null;
-                if (debug) {
-                    const debugMaterial = new THREE.MeshBasicMaterial({
-                        color: 0xff0000,
-                        wireframe: true,
-                        transparent: true,
-                        opacity: 0.3
-                    });
-        
-                    const debugGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-                    debugMesh = new THREE.Mesh(debugGeometry, debugMaterial);
-                    debugMesh.position.copy(position);
-                    scene.add(debugMesh);
-                } 
-
         return {
             wrapper,
             collider,
@@ -103,6 +87,16 @@ export class MysteryBox {
         // ✅ Claim weapon if one is waiting
         if (this.pendingWeapon) {
             this.player.pickupWeapon(this.pendingWeapon);
+
+            // ✅ Reset ammo for the new weapon
+            const config = weaponConfigs[this.pendingWeapon];
+            if (config) {
+                this.player.state.ammo[this.pendingWeapon] = {
+                    current: config.magazineSize,
+                    reserve: config.reserveAmmo ?? (config.magazineSize * 3)
+                };
+            }
+
             this.pendingWeapon = null;
             clearTimeout(this.pendingTimeout);
             console.log("Weapon claimed.");
