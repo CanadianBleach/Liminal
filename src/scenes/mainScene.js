@@ -77,7 +77,7 @@ export async function initMainScene() {
 
         if (player.state.health.current <= 0) {
             deathOverlay.style.opacity = '1';
-            setTimeout(() => window.location.reload(), 2000);
+            setTimeout(() => window.location = "../", 2000);
         }
 
         // Sync gun camera

@@ -29,6 +29,7 @@ export class Enemy {
     this.damageInterval = 1.5;
     this.damageTimer = 0;
     this.minDistanceToPlayer = 1.5;
+    this.hasEnteredAttackRadius = false;
 
     this.texture = texture;
     this.mesh = this._createMesh(position);
@@ -131,14 +132,23 @@ export class Enemy {
 
     const distanceToPlayer = this.mesh.position.distanceTo(playerPosition);
     if (distanceToPlayer < this.attackRadius) {
-      this.damageTimer += delta;
-      if (this.damageTimer >= this.damageInterval) {
-        this.damageTimer = 0;
+      if (!this.hasEnteredAttackRadius) {
+        // Immediate hit
         playerState.health.current = Math.max(0, playerState.health.current - this.damageAmount);
         flashDamageOverlay();
+        this.damageTimer = 0;
+        this.hasEnteredAttackRadius = true;
+      } else {
+        this.damageTimer += delta;
+        if (this.damageTimer >= this.damageInterval) {
+          this.damageTimer = 0;
+          playerState.health.current = Math.max(0, playerState.health.current - this.damageAmount);
+          flashDamageOverlay();
+        }
       }
     } else {
       this.damageTimer = 0;
+      this.hasEnteredAttackRadius = false;
     }
   }
 
