@@ -103,6 +103,7 @@ export class PlayerController {
           break;
         case 'ControlLeft':
           this.state.isCrouching = true;
+          this._replacePlayerCollider(this.config.CROUCH_HEIGHT); // Crouched height
           const now = performance.now() / 1000;
           if ((now - this.state.lastSprintTime) < 1.5 && (now - this.state.lastJumpTime) < 1.5 && this.state.dolphinDiveCooldown <= 0) {
             this.state.dolphinDiveTriggered = true;
@@ -145,7 +146,10 @@ export class PlayerController {
           this.state.keys.sprint = false;
           this.state.sprintReleased = true;
           break;
-        case 'ControlLeft': this.state.isCrouching = false; break;
+        case 'ControlLeft':
+          this.state.isCrouching = false;
+          this._replacePlayerCollider(this.config.STAND_HEIGHT); // Standing height
+          break;
         case 'Space': this.state.keys.jump = false; break;
       }
     });
