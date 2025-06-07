@@ -325,20 +325,27 @@ export class PlayerController {
     this.state.interactPromptVisible = false;
     this.state.interactTarget = null;
 
-    // Check nearby for "interactable" tagged objects
-    const origin = new THREE.Vector3();
-    this.camera.getWorldPosition(origin);
+    const cameraPosition = new THREE.Vector3();
+    this.camera.getWorldPosition(cameraPosition);
 
-    const direction = new THREE.Vector3();
-    this.camera.getWorldDirection(direction);
+    const proximityRadius = 3.5; // meters
+    let closestBox = null;
+    let closestDistance = Infinity;
 
-    origin.add(direction.clone().multiplyScalar(.9)); // Adjust distance if needed
+    // Check all colliders in the world
+    this.rapierWorld.forEachCollider(collider => {
+      if (collider.userData?.type === 'interactable') {
+        const position = collider.translation();
+        const distance = cameraPosition.distanceTo(new THREE.Vector3(position.x, position.y, position.z));
+        if (distance < proximityRadius && distance < closestDistance) {
+          closestBox = collider.userData.interactRef;
+          closestDistance = distance;
+        }
+      }
+    });
 
-    const ray = new RAPIER.Ray(origin, direction);
-    const hit = this.rapierWorld.castRay(ray, 2, true); // 2m range
-
-    if (hit && hit.collider?.userData?.type === 'interactable') {
-      const box = hit.collider.userData.interactRef;
+    if (closestBox) {
+      const box = closestBox;
 
       if (box.pendingWeapon) {
         const weaponName = weaponConfigs[box.pendingWeapon]?.name || box.pendingWeapon;
@@ -355,8 +362,6 @@ export class PlayerController {
       this.state.interactTarget = box;
     } else {
       hideInteractPrompt();
-      this.state.interactPromptVisible = false;
-      this.state.interactTarget = null;
     }
   }
 
