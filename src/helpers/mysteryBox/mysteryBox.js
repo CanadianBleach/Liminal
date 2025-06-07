@@ -75,22 +75,6 @@ export class MysteryBox {
 
         const collider = rapierWorld.createCollider(colliderDesc, body);
 
-                 // 5. Debug mesh
-                let debugMesh = null;
-                if (debug) {
-                    const debugMaterial = new THREE.MeshBasicMaterial({
-                        color: 0xff0000,
-                        wireframe: true,
-                        transparent: true,
-                        opacity: 0.3
-                    });
-        
-                    const debugGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-                    debugMesh = new THREE.Mesh(debugGeometry, debugMaterial);
-                    debugMesh.position.copy(position);
-                    scene.add(debugMesh);
-                } 
-
         return {
             wrapper,
             collider,

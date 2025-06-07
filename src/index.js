@@ -6,7 +6,6 @@ const uploadButton = document.getElementById('upload-button');
 
 const fileInput = document.getElementById('enemy-input');
 const clearButton = document.getElementById('clear-image-button');
-console.log(fileInput); // Should NOT be null
 
 // Page load effect
 window.addEventListener('load', () => {
@@ -31,10 +30,14 @@ uploadButton.addEventListener('click', () => {
 });
 
 fileInput.addEventListener('change', function (e) {
-  const reader = new FileReader();
-  reader.onload = function () {
-    localStorage.setItem('enemyTexture', reader.result);
-    alert('Enemy texture saved!');
-  };
-  reader.readAsDataURL(e.target.files[0]);
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function () {
+        localStorage.setItem('enemyTexture', reader.result);
+        uploadButton.textContent = file.name;
+    };
+    reader.readAsDataURL(file);
 });
+
