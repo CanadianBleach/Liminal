@@ -28,6 +28,8 @@ export async function initMainScene() {
     const clock = new THREE.Clock();
     const composer = setupPostProcessingEffects(renderer, scene, camera);
     const deathOverlay = setupDeathOverlay();
+    let hasDied = false;
+
     setupRoundIndicator();
     setupDamageOverlay();
 
