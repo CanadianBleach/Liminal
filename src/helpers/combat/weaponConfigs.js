@@ -1,0 +1,642 @@
+export const weaponConfigs = {
+  knife: {
+    name: 'Knife',
+    model: '/models/combat_knife.glb',
+    muzzleFlashTexture: '/textures/muzzle1.png', // not used but required
+    mysteryBoxEligible: false, // not in box, it's default melee
+    fireRate: 1.0, // swing rate
+    damage: 75, // strong melee hit
+    recoil: 0.02, // tiny animation kick
+    fireMode: 'melee',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [0, 0], // no muzzle flash
+    ammoCapacity: Infinity, // not used
+    clipSize: Infinity, // not used
+    reloadTime: 0, // no reload
+    canADS: false,
+    textures: {
+      baseColor: '',
+      normal: '',
+      metallic: '',
+      roughness: ''
+    }
+  },
+  autoguns_gun1: {
+    name: 'Auto McShootster',
+    model: '/models/autoguns/gun1.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun1/gun1_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun1/gun1_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun1/gun1_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun1/gun1_gun_Roughness.png'
+    }
+  },
+  autoguns_gun2: {
+    name: 'Shooty Shooter',
+    model: '/models/autoguns/gun2.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun2/gun2_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun2/gun2_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun2/gun2_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun2/gun2_gun_Roughness.png'
+    }
+  },
+  autoguns_gun3: {
+    name: 'Bullet Bully',
+    model: '/models/autoguns/gun3.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun3/gun3_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun3/gun3_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun3/gun3_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun3/gun3_gun_Roughness.png'
+    }
+  },
+  autoguns_gun4: {
+    name: 'Freak on a leash',
+    model: '/models/autoguns/gun4.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun4/gun4_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun4/gun4_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun4/gun4_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun4/gun4_gun_Roughness.png'
+    }
+  },
+  autoguns_gun5: {
+    name: 'Shootster McGee',
+    model: '/models/autoguns/gun5.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun5/gun5_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun5/gun5_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun5/gun5_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun5/gun5_gun_Roughness.png'
+    }
+  },
+  autoguns_gun6: {
+    name: 'Gunny Gunner',
+    model: '/models/autoguns/gun6.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun6/gun6_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun6/gun6_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun6/gun6_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun6/gun6_gun_Roughness.png'
+    }
+  },
+  autoguns_gun7: {
+    name: 'Pea Shooter',
+    model: '/models/autoguns/gun7.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun7/gun7_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun7/gun7_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun7/gun7_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun7/gun7_gun_Roughness.png'
+    }
+  },
+  autoguns_gun8: {
+    name: 'Whack a Mole',
+    model: '/models/autoguns/gun8.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun8/gun8_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun8/gun8_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun8/gun8_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun8/gun8_gun_Roughness.png'
+    }
+  },
+  autoguns_gun9: {
+    name: 'Everett',
+    model: '/models/autoguns/gun9.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun9/gun9_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun9/gun9_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun9/gun9_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun9/gun9_gun_Roughness.png'
+    }
+  },
+  autoguns_gun10: {
+    name: 'Garbonzo Gobbler',
+    model: '/models/autoguns/gun10.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun10/gun10_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun10/gun10_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun10/gun10_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun10/gun10_gun_Roughness.png'
+    }
+  },
+  autoguns_gun11: {
+    name: 'Chickpea Pooter',
+    model: '/models/autoguns/gun11.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.09,
+    damage: 18,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 180,
+    clipSize: 30,
+    reloadTime: 2.2,
+    textures: {
+      baseColor: '/models/autoguns/textures/gun11/gun11_gun_BaseColor.png',
+      normal: '/models/autoguns/textures/gun11/gun11_gun_Normal.png',
+      metallic: '/models/autoguns/textures/gun11/gun11_gun_Metallic.png',
+      roughness: '/models/autoguns/textures/gun11/gun11_gun_Roughness.png'
+    }
+  },
+  grenade_launchers_gun1: {
+    name: 'Grenade Launchers Gun 1',
+    model: '/models/grenade_launchers/gun1.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: false,
+    fireRate: 0.15,
+    damage: 25,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 300,
+    clipSize: 30,
+    reloadTime: 2.5,
+    textures: {
+      baseColor: '/models/grenade_launchers/textures/gun1/gun1_gun_BaseColor.png',
+      normal: '/models/grenade_launchers/textures/gun1/gun1_gun_Normal.png',
+      metallic: '/models/grenade_launchers/textures/gun1/gun1_gun_Metallic.png',
+      roughness: '/models/grenade_launchers/textures/gun1/gun1_gun_Roughness.png'
+    }
+  },
+  grenade_launchers_gun2: {
+    name: 'Grenade Launchers Gun 2',
+    model: '/models/grenade_launchers/gun2.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: false,
+    fireRate: 0.15,
+    damage: 25,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 300,
+    clipSize: 30,
+    reloadTime: 2.5,
+    textures: {
+      baseColor: '/models/grenade_launchers/textures/gun2/gun2_gun_BaseColor.png',
+      normal: '/models/grenade_launchers/textures/gun2/gun2_gun_Normal.png',
+      metallic: '/models/grenade_launchers/textures/gun2/gun2_gun_Metallic.png',
+      roughness: '/models/grenade_launchers/textures/gun2/gun2_gun_Roughness.png'
+    }
+  },
+  handguns_gun1: {
+    name: 'Pellet Puncher',
+    model: '/models/handguns/gun1.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.45,
+    damage: 30,
+    recoil: 0.05,
+    fireMode: 'semi',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 72,
+    clipSize: 12,
+    reloadTime: 1.6,
+    canADS: true,
+    textures: {
+      baseColor: '/models/handguns/textures/gun1/gun1_gun_BaseColor.png',
+      normal: '/models/handguns/textures/gun1/gun1_gun_Normal.png',
+      metallic: '/models/handguns/textures/gun1/gun1_gun_Metallic.png',
+      roughness: '/models/handguns/textures/gun1/gun1_gun_Roughness.png'
+    }
+  },
+  handguns_gun2: {
+    name: 'Handy Mandy',
+    model: '/models/handguns/gun2.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.45,
+    damage: 30,
+    recoil: 0.05,
+    fireMode: 'semi',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 72,
+    clipSize: 12,
+    reloadTime: 1.6,
+    textures: {
+      baseColor: '/models/handguns/textures/gun2/gun2_gun_BaseColor.png',
+      normal: '/models/handguns/textures/gun2/gun2_gun_Normal.png',
+      metallic: '/models/handguns/textures/gun2/gun2_gun_Metallic.png',
+      roughness: '/models/handguns/textures/gun2/gun2_gun_Roughness.png'
+    }
+  },
+  handguns_gun3: {
+    name: 'Flabergaster',
+    model: '/models/handguns/gun3.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.45,
+    damage: 30,
+    recoil: 0.05,
+    fireMode: 'semi',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 72,
+    clipSize: 12,
+    reloadTime: 1.6,
+    textures: {
+      baseColor: '/models/handguns/textures/gun3/gun3_gun_BaseColor.png',
+      normal: '/models/handguns/textures/gun3/gun3_gun_Normal.png',
+      metallic: '/models/handguns/textures/gun3/gun3_gun_Metallic.png',
+      roughness: '/models/handguns/textures/gun3/gun3_gun_Roughness.png'
+    }
+  },
+  handguns_gun4: {
+    name: 'Pickle Pounder',
+    model: '/models/handguns/gun4.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.45,
+    damage: 30,
+    recoil: 0.05,
+    fireMode: 'semi',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 72,
+    clipSize: 12,
+    reloadTime: 1.6,
+    textures: {
+      baseColor: '/models/handguns/textures/gun4/gun4_gun_BaseColor.png',
+      normal: '/models/handguns/textures/gun4/gun4_gun_Normal.png',
+      metallic: '/models/handguns/textures/gun4/gun4_gun_Metallic.png',
+      roughness: '/models/handguns/textures/gun4/gun4_gun_Roughness.png'
+    }
+  },
+  handguns_gun5: {
+    name: 'Ice King',
+    model: '/models/handguns/gun5.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.45,
+    damage: 30,
+    recoil: 0.05,
+    fireMode: 'semi',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 72,
+    clipSize: 12,
+    reloadTime: 1.6,
+    textures: {
+      baseColor: '/models/handguns/textures/gun5/gun5_gun_BaseColor.png',
+      normal: '/models/handguns/textures/gun5/gun5_gun_Normal.png',
+      metallic: '/models/handguns/textures/gun5/gun5_gun_Metallic.png',
+      roughness: '/models/handguns/textures/gun5/gun5_gun_Roughness.png'
+    }
+  },
+  handguns_gun6: {
+    name: 'Swiss Cheeser',
+    model: '/models/handguns/gun6.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.45,
+    damage: 30,
+    recoil: 0.05,
+    fireMode: 'semi',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 72,
+    clipSize: 12,
+    reloadTime: 1.6,
+    textures: {
+      baseColor: '/models/handguns/textures/gun6/gun6_gun_BaseColor.png',
+      normal: '/models/handguns/textures/gun6/gun6_gun_Normal.png',
+      metallic: '/models/handguns/textures/gun6/gun6_gun_Metallic.png',
+      roughness: '/models/handguns/textures/gun6/gun6_gun_Roughness.png'
+    }
+  },
+  handguns_gun7: {
+    name: 'Not a Switch',
+    model: '/models/handguns/gun7.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.45,
+    damage: 30,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 72,
+    clipSize: 12,
+    reloadTime: 1.6,
+    textures: {
+      baseColor: '/models/handguns/textures/gun7/gun7_gun_BaseColor.png',
+      normal: '/models/handguns/textures/gun7/gun7_gun_Normal.png',
+      metallic: '/models/handguns/textures/gun7/gun7_gun_Metallic.png',
+      roughness: '/models/handguns/textures/gun7/gun7_gun_Roughness.png'
+    }
+  },
+  handguns_gun8: {
+    name: 'Hole Puncher',
+    model: '/models/handguns/gun8.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.45,
+    damage: 30,
+    recoil: 0.05,
+    fireMode: 'semi',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 72,
+    clipSize: 12,
+    reloadTime: 1.6,
+    textures: {
+      baseColor: '/models/handguns/textures/gun8/gun8_gun_BaseColor.png',
+      normal: '/models/handguns/textures/gun8/gun8_gun_Normal.png',
+      metallic: '/models/handguns/textures/gun8/gun8_gun_Metallic.png',
+      roughness: '/models/handguns/textures/gun8/gun8_gun_Roughness.png'
+    }
+  },
+  miniguns_gun1: {
+    name: 'Stapler',
+    model: '/models/miniguns/gun1.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.05,
+    damage: 10,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 500,
+    clipSize: 100,
+    reloadTime: 4.5,
+    textures: {
+      baseColor: '/models/miniguns/textures/gun1/gun1_gun_BaseColor.png',
+      normal: '/models/miniguns/textures/gun1/gun1_gun_Normal.png',
+      metallic: '/models/miniguns/textures/gun1/gun1_gun_Metallic.png',
+      roughness: '/models/miniguns/textures/gun1/gun1_gun_Roughness.png'
+    }
+  },
+  miniguns_gun2: {
+    name: 'Gatlinburg',
+    model: '/models/miniguns/gun2.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.05,
+    damage: 10,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 500,
+    clipSize: 100,
+    reloadTime: 4.5,
+    textures: {
+      baseColor: '/models/miniguns/textures/gun2/gun2_gun_BaseColor.png',
+      normal: '/models/miniguns/textures/gun2/gun2_gun_Normal.png',
+      metallic: '/models/miniguns/textures/gun2/gun2_gun_Metallic.png',
+      roughness: '/models/miniguns/textures/gun2/gun2_gun_Roughness.png'
+    }
+  },
+  shotguns_gun1: {
+    name: 'Shartgun',
+    model: '/models/shotguns/gun1.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 1.0,
+    damage: 60,
+    recoil: 0.05,
+    fireMode: 'pump',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 32,
+    clipSize: 8,
+    reloadTime: 3.0,
+    textures: {
+      baseColor: '/models/shotguns/textures/gun1/gun1_gun_BaseColor.png',
+      normal: '/models/shotguns/textures/gun1/gun1_gun_Normal.png',
+      metallic: '/models/shotguns/textures/gun1/gun1_gun_Metallic.png',
+      roughness: '/models/shotguns/textures/gun1/gun1_gun_Roughness.png'
+    }
+  },
+  shotguns_gun2: {
+    name: 'Shitgun',
+    model: '/models/shotguns/gun2.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 1.0,
+    damage: 60,
+    recoil: 0.05,
+    fireMode: 'pump',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 32,
+    clipSize: 8,
+    reloadTime: 3.0,
+    textures: {
+      baseColor: '/models/shotguns/textures/gun2/gun2_gun_BaseColor.png',
+      normal: '/models/shotguns/textures/gun2/gun2_gun_Normal.png',
+      metallic: '/models/shotguns/textures/gun2/gun2_gun_Metallic.png',
+      roughness: '/models/shotguns/textures/gun2/gun2_gun_Roughness.png'
+    }
+  },
+  shotguns_gun3: {
+    name: 'Shootgun',
+    model: '/models/shotguns/gun3.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 1.0,
+    damage: 60,
+    recoil: 0.05,
+    fireMode: 'pump',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 32,
+    clipSize: 8,
+    reloadTime: 3.0,
+    textures: {
+      baseColor: '/models/shotguns/textures/gun3_detail/gun3_detail_bullet_BaseColor.png',
+      normal: '/models/shotguns/textures/gun3_detail/gun3_detail_bullet_Normal.png',
+      metallic: '/models/shotguns/textures/gun3_detail/gun3_detail_bullet_Metallic.png',
+      roughness: '/models/shotguns/textures/gun3_detail/gun3_detail_bullet_Roughness.png'
+    }
+  },
+  shotguns_gun4: {
+    name: 'Shoneys',
+    model: '/models/shotguns/gun4.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 1.0,
+    damage: 60,
+    recoil: 0.05,
+    fireMode: 'pump',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 32,
+    clipSize: 8,
+    reloadTime: 3.0,
+    textures: {
+      baseColor: '/models/shotguns/textures/gun4/gun4_gun_BaseColor.png',
+      normal: '/models/shotguns/textures/gun4/gun4_gun_Normal.png',
+      metallic: '/models/shotguns/textures/gun4/gun4_gun_Metallic.png',
+      roughness: '/models/shotguns/textures/gun4/gun4_gun_Roughness.png'
+    }
+  },
+  sniper_rifle_gun1: {
+    name: 'Waffle Home',
+    model: '/models/sniper_rifle/gun1.fbx',
+    muzzleFlashTexture: '/textures/muzzle1.png',
+    mysteryBoxEligible: true,
+    fireRate: 0.15,
+    damage: 25,
+    recoil: 0.05,
+    fireMode: 'auto',
+    modelScale: [0.05, 0.05, 0.05],
+    modelOffset: [0.2, -0.1, -0.2],
+    flashSize: [5, 5],
+    ammoCapacity: 300,
+    clipSize: 30,
+    reloadTime: 2.5,
+    textures: {
+      baseColor: '/models/sniper_rifle/textures/gun1/gun1_gun_BaseColor.png',
+      normal: '/models/sniper_rifle/textures/gun1/gun1_gun_Normal.png',
+      metallic: '/models/sniper_rifle/textures/gun1/gun1_gun_Metallic.png',
+      roughness: '/models/sniper_rifle/textures/gun1/gun1_gun_Roughness.png'
+    }
+  },
+};

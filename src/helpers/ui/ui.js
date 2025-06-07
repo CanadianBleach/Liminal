@@ -4,9 +4,17 @@ import { playSound } from "../sounds/audio";
 let batteryBar;
 let deathOverlay;
 let killCounter;
+let scoreCounter;
+
 let healthBar;
 let sprintBar;
 let deathMessageOverlay;
+
+
+let ammoCurrent;
+let ammoReserve;
+
+let interactPrompt;
 
 
 export function getUIElements() {
@@ -14,16 +22,42 @@ export function getUIElements() {
   killCounter = document.getElementById('kill-count');
   healthBar = document.getElementById('health-bar');
   sprintBar = document.getElementById('sprint-bar');
+  ammoCurrent = document.getElementById('ammo-current');
+  ammoReserve = document.getElementById('ammo-reserve');
+  scoreCounter = document.getElementById('score-count');
+  interactPrompt = document.getElementById('interact-prompt');
 }
 
-export function updateUI(playerState, enemyManager, battery) {
+
+export function updateUI(playerState, enemyManager, battery, currentGun) {
   updateHealthUI(playerState.health);
-  updateKillsUI(enemyManager);
+  updateKillsUI(playerState);
   updateFlashlightUI(battery);
   updateSprintUI(playerState);
   updateRoundUI(enemyManager);
   checkForRoundUpdate(enemyManager);
+  updateAmmoUI(currentGun);
 }
+
+export function showInteractPrompt(text = 'Press E to interact') {
+  if (!interactPrompt) return;
+  interactPrompt.innerText = text;
+  interactPrompt.style.display = 'block';
+}
+
+
+export function hideInteractPrompt() {
+  if (!interactPrompt) return;
+  interactPrompt.style.display = 'none';
+}
+
+
+export function updateAmmoUI(currentGun) {
+  if (!ammoCurrent || !ammoReserve || !currentGun) return;
+  ammoCurrent.textContent = currentGun.currentAmmo;
+  ammoReserve.textContent = currentGun.reserveAmmo;
+}
+
 
 export function updateRoundUI(enemyManager) {
   const roundCounter = document.getElementById('round-count');
@@ -63,8 +97,43 @@ export function updateHealthUI(health) {
   }
 }
 
-export function updateKillsUI(enemyManager) {
-  killCounter.textContent = enemyManager.killCount;
+export function updateKillsUI(playerState) {
+  if (killCounter) {
+    killCounter.textContent = playerState.killCount;
+  }
+
+  if (scoreCounter) {
+    scoreCounter.textContent = playerState.score;
+  }
+}
+
+let damageOverlay;
+
+export function setupDamageOverlay() {
+  damageOverlay = document.createElement('div');
+  damageOverlay.id = 'damage-overlay';
+  Object.assign(damageOverlay.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(255, 0, 0, 0.3)',
+    zIndex: '300',
+    opacity: '0',
+    pointerEvents: 'none',
+    transition: 'opacity 0.2s ease',
+  });
+  document.body.appendChild(damageOverlay);
+}
+
+export function flashDamageOverlay() {
+  if (!damageOverlay) return;
+  damageOverlay.style.opacity = '1';
+
+  setTimeout(() => {
+    damageOverlay.style.opacity = '0';
+  }, 250); // short flash
 }
 
 export function setupDeathOverlay() {
@@ -91,19 +160,19 @@ export function setupRoundIndicator() {
   roundOverlay = document.createElement('div');
   roundOverlay.id = 'round-indicator';
   Object.assign(roundOverlay.style, {
-  position: 'fixed',
-  top: '40%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  fontSize: '100px',
-  fontWeight: 'bold',
-  color: 'red',
-  opacity: '0',
-  zIndex: '300',
-  pointerEvents: 'none',
-  transition: 'opacity 0.3s ease, transform 3s ease',
-  transformStyle: 'preserve-3d',
-  perspective: '1000px',
+    position: 'fixed',
+    top: '40%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    fontSize: '100px',
+    fontWeight: 'bold',
+    color: 'red',
+    opacity: '0',
+    zIndex: '300',
+    pointerEvents: 'none',
+    transition: 'opacity 0.3s ease, transform 3s ease',
+    transformStyle: 'preserve-3d',
+    perspective: '1000px',
   });
   document.body.appendChild(roundOverlay);
   return roundOverlay;
@@ -177,10 +246,10 @@ export function updateFlashlightUI(flashlightState) {
     batteryBar.style.backgroundColor = 'red';
   }
 }
+
 let currentRound = 1;
 let lastKillCount = 0;
 let lastWaveNumber = 0;
-
 
 function checkForRoundUpdate(enemyManager) {
   const currentWave = enemyManager.waveNumber;
