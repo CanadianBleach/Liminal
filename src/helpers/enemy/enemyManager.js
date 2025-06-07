@@ -85,17 +85,21 @@ export class EnemyManager {
     if (this.killsThisRound >= this.killsNeededForNextRound && !this.waveInProgress) {
       this.waveNumber++;
       this.killsNeededForNextRound += Math.floor(5 + this.waveNumber * 2);
-
+  
       this.killsThisRound = 0;
       this.enemiesSpawnedThisRound = 0;
       this.waveInProgress = true;
-
-      this.readyToSpawn = false;       // ⬅️ Delay next wave start
-      this.roundDelayTimer = 0;        // ⬅️ Reset the timer
-
-      console.log(`New wave: ${this.waveNumber}, need ${this.killsNeededForNextRound} kills next round`);
+  
+      this.readyToSpawn = false;
+      this.roundDelayTimer = 0;
+  
+      // Decrease spawn interval to make enemies spawn faster
+      this.spawnInterval = Math.max(1, this.spawnInterval - 0.5);
+  
+      console.log(`New wave: ${this.waveNumber}, need ${this.killsNeededForNextRound} kills next round, spawn interval: ${this.spawnInterval}s`);
     }
   }
+  
 
   update(delta, playerState) {
     if (this.readyToSpawn) {
