@@ -65,15 +65,17 @@ export class MysteryBox {
         wrapper.position.copy(position);
         scene.add(wrapper);
 
-        // 4. Create RAPIER collider
+        // 4. Create a static RAPIER body and collider
+        const bodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z);
+        const body = rapierWorld.createRigidBody(bodyDesc);
+
         const colliderDesc = RAPIER.ColliderDesc.cuboid(size.x / 2, size.y / 2, size.z / 2)
-            .setTranslation(position.x, position.y, position.z)
-            .setSensor(false) // ✅ solid for raycasts
+            .setSensor(false)
             .setCollisionGroups(collisionGroup);
 
-        const collider = rapierWorld.createCollider(colliderDesc);
+        const collider = rapierWorld.createCollider(colliderDesc, body);
 
-        /*         // 5. Debug mesh
+                 // 5. Debug mesh
                 let debugMesh = null;
                 if (debug) {
                     const debugMaterial = new THREE.MeshBasicMaterial({
@@ -87,7 +89,7 @@ export class MysteryBox {
                     debugMesh = new THREE.Mesh(debugGeometry, debugMaterial);
                     debugMesh.position.copy(position);
                     scene.add(debugMesh);
-                } */
+                } 
 
         return {
             wrapper,
