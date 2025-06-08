@@ -156,6 +156,7 @@ export class MysteryBox {
 
             this.pendingTimeout = setTimeout(() => {
                 console.log("Mystery box weapon expired.");
+                playSound("box_error")
                 this.pendingWeapon = null;
             }, 5000);
         }, rollDuration);

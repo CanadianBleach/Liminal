@@ -102,14 +102,14 @@ function initCore() {
     const scene = new THREE.Scene();
     const canvas = document.getElementById("game-canvas");
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.autoClear = false; // ⬅️ Add this
+    renderer.autoClear = false;
 
     const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.name = 'MainCamera';
 
     const gunCamera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
-    gunCamera.layers.set(1); // Only sees gun layer
-    gunCamera.fov = 75; // or whatever you want for weapon view
+    gunCamera.layers.set(1);
+    gunCamera.fov = 75;
     gunCamera.updateProjectionMatrix();
 
     camera.add(listener);
@@ -117,13 +117,43 @@ function initCore() {
 
     const tiltContainer = new THREE.Object3D();
     tiltContainer.add(camera);
-    tiltContainer.add(gunCamera); // ← Add the gun camera here too
+    tiltContainer.add(gunCamera);
 
     const cameraWrapper = new THREE.Object3D();
     cameraWrapper.add(tiltContainer);
     scene.add(cameraWrapper);
 
     const controls = new PointerLockControls(cameraWrapper, renderer.domElement);
+
+    // Inject sensitivity into internal mouse handler
+    const sensitivity = parseFloat(localStorage.getItem("mouseSensitivity")) || 1;
+
+    const scope = controls;
+    const pitchObject = scope.object.children[0]; // your tiltContainer
+    const yawObject = scope.object;               // cameraWrapper
+
+    scope.pointerSpeed = 0.002 * sensitivity;
+
+    function onMouseMove(event) {
+        if (!scope.isLocked) return;
+
+        const movementX = event.movementX || 0;
+        const movementY = event.movementY || 0;
+
+        yawObject.rotation.y -= movementX * scope.pointerSpeed;
+        pitchObject.rotation.x -= movementY * scope.pointerSpeed;
+
+        pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitchObject.rotation.x));
+    }
+
+    // Remove existing internal handler if any
+    document.removeEventListener('mousemove', scope._onMouseMove, false);
+    // Add patched version
+    document.addEventListener('mousemove', onMouseMove, false);
+
+    // Save reference so it can be removed later if needed
+    scope._onMouseMove = onMouseMove;
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;

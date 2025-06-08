@@ -196,6 +196,8 @@ export class PlayerController {
       type: 'player',
       playerRef: this // optional: reference back to the controller
     };
+
+    this.config.MOUSE_SENSITIVITY = parseFloat(localStorage.getItem("mouseSensitivity")) || 1;
   }
 
   switchSlot(index) {

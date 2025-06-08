@@ -3,6 +3,7 @@ const startButton = document.getElementById("start-button");
 const fader = document.getElementById("fader");
 const webLoadFader = document.getElementById("web-load-fader");
 const uploadButton = document.getElementById('upload-button');
+const settingsButton = document.getElementById("settings-button");
 
 const fileInput = document.getElementById('enemy-input');
 const clearButton = document.getElementById('clear-image-button');
@@ -21,13 +22,17 @@ startButton.addEventListener("click", () => {
 });
 
 clearButton.addEventListener("click", () => {
-    localStorage.clear();
+    localStorage.setItem("enemyTexture", null);
     uploadButton.textContent = "Upload Enemy";
 });
 
 // Upload Button Behavior
 uploadButton.addEventListener('click', () => {
     fileInput.click();
+});
+
+settingsButton.addEventListener('click', () => {
+    window.location.href = "./settings"
 });
 
 fileInput.addEventListener('change', function (e) {
