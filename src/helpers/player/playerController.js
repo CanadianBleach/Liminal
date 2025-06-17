@@ -226,6 +226,10 @@ export class PlayerController {
     this.state.inventory.slots[0] = 'handguns_gun1';
     this.state.inventory.activeSlot = 0;
     gunManager.switchWeapon('handguns_gun1');
+
+    // preload for performance
+    this.switchSlot(1);
+    this.switchSlot(0);
   }
 
   pickupWeapon(weaponKey) {
@@ -456,13 +460,18 @@ export class PlayerController {
       : this.state.keys.sprint
         ? this.config.SPRINT_SPEED_MULTIPLIER
         : 1;
+
     const moveTarget = this.state.direction.clone().multiplyScalar(this.config.MOVE_SPEED * speedMult);
 
+    // Calculate a consistent lerp factor using exponential decay
+    const groundLerpFactor = 1 - Math.exp(-this.config.MOVEMENT_INTERPOLATION * delta);
+    const airLerpFactor = 1 - Math.exp(-2 * delta); // Using 2 as air interpolation multiplier
+
     if (isAirborne) {
-      this.state.velocityTarget.lerp(moveTarget, 2 * delta);
+      this.state.velocityTarget.lerp(moveTarget, airLerpFactor);
     } else {
       if (moveTarget.lengthSq() > 0) {
-        this.state.velocityTarget.lerp(moveTarget, this.config.MOVEMENT_INTERPOLATION * delta);
+        this.state.velocityTarget.lerp(moveTarget, groundLerpFactor);
       } else {
         this.state.velocityTarget.set(0, 0, 0);
       }

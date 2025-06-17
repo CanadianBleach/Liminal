@@ -115,13 +115,15 @@ function initCore() {
     camera.add(listener);
     loadSounds(camera);
 
-    const tiltContainer = new THREE.Object3D();
+    const pitchContainer = new THREE.Object3D(); // for mouse pitch
+    const tiltContainer = new THREE.Object3D();  // for dive tilt
+    const cameraWrapper = new THREE.Object3D();  // for yaw
+
     tiltContainer.add(camera);
     tiltContainer.add(gunCamera);
 
-    const cameraWrapper = new THREE.Object3D();
-    cameraWrapper.add(tiltContainer);
-    scene.add(cameraWrapper);
+    pitchContainer.add(tiltContainer);
+    cameraWrapper.add(pitchContainer);
 
     const controls = new PointerLockControls(cameraWrapper, renderer.domElement);
 
@@ -129,8 +131,8 @@ function initCore() {
     const sensitivity = parseFloat(localStorage.getItem("mouseSensitivity")) || 1;
 
     const scope = controls;
-    const pitchObject = scope.object.children[0]; // your tiltContainer
-    const yawObject = scope.object;               // cameraWrapper
+    const pitchObject = pitchContainer;  // Use the new pitch container
+    const yawObject = cameraWrapper;     // Still the same
 
     scope.pointerSpeed = 0.002 * sensitivity;
 
