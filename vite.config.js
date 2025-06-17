@@ -6,7 +6,8 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: path.resolve(__dirname, 'index.html'),
-                play: path.resolve(__dirname, 'play.html')
+                play: path.resolve(__dirname, 'play.html'),
+                settings: path.resolve(__dirname, 'settings.html')
             }
         }
     }
