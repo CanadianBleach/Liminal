@@ -270,7 +270,6 @@ export class PlayerController {
       this.state.dolphinDiveCooldown = Math.max(0, this.state.dolphinDiveCooldown - delta);
     }
 
-    this._updateFOV(camera, delta);
     this._updateDiveCameraFX(delta);
     this._handleSprintCrouch(delta, isAirborne);
     this._updateMovementDirection();
@@ -383,6 +382,12 @@ export class PlayerController {
       }
     });
     return cam;
+  }
+
+  updateFOV(delta) {
+    const camera = this._getCamera();
+    if (!camera) return;
+    this._updateFOV(camera, delta);
   }
 
   _updateFOV(camera, delta) {
